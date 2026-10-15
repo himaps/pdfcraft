@@ -137,31 +137,29 @@ jobs:
             kylin-build.log
           if-no-files-found: ignore
 
-      - name: Mirror the logs to the ci-logs branch on failure
+      - name: Re-emit the failing build log tail as annotations
         if: failure()
-        env:
-          TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          ARCH: ${{ matrix.osarch }}
         run: |
-          set -e
-          # The logs API answers 401/403 to anonymous readers, while raw reads of a
-          # branch stay public: mirror the logs to ci-logs (deepin-screenshot README,
-          # lesson 9). git is bullseye's 2.30, so no worktree --orphan here.
-          STAMP="$(date -u +%Y%m%d-%H%M%S)"
-          rm -rf /tmp/ci-logs
-          if ! git clone -q --depth 1 --branch ci-logs "https://x-access-token:${TOKEN}@github.com/${REPO}.git" /tmp/ci-logs 2>/dev/null; then
-            git init -q /tmp/ci-logs
-            git -C /tmp/ci-logs checkout -q --orphan ci-logs
-          fi
-          for f in build-deps.log kylin-build.log; do
-            [ -f "$f" ] && cp "$f" "/tmp/ci-logs/kylin-${ARCH}-${STAMP}-${f}"
-          done
-          git -C /tmp/ci-logs add -A
-          git -C /tmp/ci-logs -c user.email=actions@github.com -c user.name="github-actions[bot]" \
-            commit -q -m "ci log: kylin ${ARCH} failure at ${STAMP}" || exit 0
-          git -C /tmp/ci-logs push -q origin ci-logs
-          echo "logs mirrored to the ci-logs branch"
+          # The logs API answers 401/403 to anonymous readers and the job page loads
+          # its log client-side, but check-run annotations are public API: re-emit
+          # the tail of each log as ::error:: / ::warning:: lines (10 per bucket per
+          # step is GitHub's cap), so a failed run can be diagnosed without
+          # credentials. The full logs stay available as the *-logs artifact.
+          emit() {
+            f="$1"; n="$2"; kind="$3"
+            [ -f "$f" ] || return 0
+            {
+              echo "### tail of \`$f\`"
+              echo '```'
+              tail -n "$n" "$f"
+              echo '```'
+            } >>"$GITHUB_STEP_SUMMARY"
+            tail -n "$n" "$f" | cut -c1-300 | while IFS= read -r line; do
+              printf '::%s title=%s::%s\n' "$kind" "$f" "$line"
+            done
+          }
+          emit kylin-build.log 12 error
+          emit build-deps.log 6 warning
 
   publish-release:
     name: Attach the debs to the tag's release

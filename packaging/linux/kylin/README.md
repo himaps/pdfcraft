@@ -101,6 +101,7 @@ deepin-screenshot 的 README「构建踩坑记录」一致，不重复。本仓�
 4. **离线闭包很小**：两个二进制只直接链 glibc 和 libgcc_s，其余（X11/Wayland/Vulkan）都是
    运行时 dlopen，闭包只有个位数个包——与 deepin-screenshot（Qt/DTK 全家桶，75~108MB）不同，
    这是 egui 应用的天然优势。
-5. **失败日志要能匿名读**。logs API 对匿名请求返回 401/403，所以失败时除 artifact 外还会把
-   `build-deps.log` / `kylin-build.log` 镜像到 `ci-logs` 分支（raw 读公开，deepin-screenshot
-   README 踩坑记录第 9 条同款）。
+5. **失败日志要能匿名读**。logs API 对匿名请求返回 401/403，job 页面的日志又是前端加载——
+   唯有 check-run 注解走公开 API。失败时 workflow 会把 `build-deps.log` / `kylin-build.log`
+   的尾部重发成 `::error::` / `::warning::` 注解（每类每步上限 10 条），完整日志仍在
+   `*-logs` artifact 里。
