@@ -145,7 +145,9 @@ install -m755 "$HERE/postinst.sh" "$PKGDIR/DEBIAN/postinst"
 dpkg-deb --build --root-owner-group "$PKGDIR" "$DIST/$BASENAME.deb"
 # A packaging step that silently drops the staged tree would produce a small, confident,
 # useless package, so every deb must prove it carries the application before it ships.
-dpkg-deb -c "$DIST/$BASENAME.deb" | grep -q "usr/bin/pdfcraft" || { echo "error: $BASENAME.deb does not contain the application" >&2; exit 1; }
+# No `grep -q` on the pipe: it exits at the first match and SIGPIPEs dpkg-deb's tar,
+# which pipefail reports as a failure even on a match.
+dpkg-deb -c "$DIST/$BASENAME.deb" | grep "usr/bin/pdfcraft" >/dev/null || { echo "error: $BASENAME.deb does not contain the application" >&2; exit 1; }
 echo "wrote $DIST/$BASENAME.deb"
 
 # ---- offline deb --------------------------------------------------------------------------------
@@ -327,7 +329,7 @@ write_control "$PKGDIR" "Kylin V20 offline build"
 dpkg-deb --build --root-owner-group "$PKGDIR" "$DIST/$BASENAME-offline.deb"
 CONTENTS="$(dpkg-deb -c "$DIST/$BASENAME-offline.deb")"
 check_in_offline() {
-  echo "$CONTENTS" | grep -q "$1" || { echo "error: $BASENAME-offline.deb does not contain $1" >&2; exit 1; }
+  echo "$CONTENTS" | grep "$1" >/dev/null || { echo "error: $BASENAME-offline.deb does not contain $1" >&2; exit 1; }
 }
 check_in_offline "usr/bin/pdfcraft"
 check_in_offline "usr/share/pdfcraft/install-deps.sh"
