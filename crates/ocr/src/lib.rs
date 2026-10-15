@@ -7,10 +7,15 @@
 //! searchable image (Acrobat's "Searchable Image (Exact)": the image is left untouched).
 //!
 //! The models read the Latin alphabet (English and other languages written without accents).
+//! Chinese text (mixed Chinese/English pages included) is read by the system's tesseract
+//! instead — see [`tesseract`] — and stays out of the invisible text layer until that layer has
+//! a font that can hold it (the layer is Helvetica in WinAnsiEncoding).
 
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 use std::path::{Path, PathBuf};
+
+pub mod tesseract;
 
 pub use pdfcraft_fonts::helvetica_width;
 
@@ -23,8 +28,9 @@ pub const RECOGNITION_MODEL: &str = "text-recognition.rten";
 /// `€`, which made a scanned "€250" read as "E250".
 pub const ALPHABET: &str = " 0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~€ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-/// The languages the models read (ISO 639-1); all use the Latin alphabet without accents.
-pub const LANGUAGES: &[(&str, &str)] = &[("en", "English")];
+/// The languages recognition reads: `en` through the bundled ocrs models, `zh-hans` through the
+/// system's tesseract (see [`tesseract`]).
+pub const LANGUAGES: &[(&str, &str)] = &[("en", "English"), ("zh-hans", "简体中文（tesseract）")];
 
 #[derive(Debug, thiserror::Error)]
 pub enum OcrError {
@@ -38,6 +44,12 @@ pub enum OcrError {
     Recognize(String),
     #[error("the image is empty")]
     EmptyImage,
+    /// Shown to end users; the offline deb carries the package, Kylin installs it with
+    /// `sudo apt install tesseract-ocr`.
+    #[error("the tesseract program is not installed (Chinese recognition runs the system's tesseract: sudo apt install tesseract-ocr)")]
+    TesseractMissing,
+    #[error("the tesseract language data {0} is not installed (sudo apt install tesseract-ocr-chi-sim)")]
+    TesseractData(String),
 }
 
 /// Where the two model files are.
