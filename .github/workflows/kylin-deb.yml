@@ -140,6 +140,28 @@ jobs:
             kylin-build.log
           if-no-files-found: ignore
 
+      - name: Emit format and clippy findings as annotations
+        # Once per run (amd64): the workspace is already compiled above, so clippy is quick,
+        # and check-run annotations are the only finding channel readable without credentials.
+        if: failure() || matrix.arch == 'amd64'
+        run: |
+          cargo fmt --check > /tmp/fmt.txt 2>&1 || true
+          cargo clippy --workspace --all-targets > /tmp/clippy.txt 2>&1 || true
+          n=0
+          while IFS= read -r line; do
+            n=$((n + 1)); [ "$n" -gt 10 ] && break
+            printf '::error title=fmt L%d::%s\n' "$n" "$line"
+          done < /tmp/fmt.txt
+          n=0
+          grep -E '^error(\[|:)' /tmp/clippy.txt | head -10 | while IFS= read -r line; do
+            printf '::error title=clippy::%s\n' "$line"
+          done
+          n=0
+          grep '^warning: ' /tmp/clippy.txt | head -10 | while IFS= read -r line; do
+            printf '::warning title=clippy::%s\n' "$line"
+          done
+          echo "fmt: $(wc -l < /tmp/fmt.txt) lines, clippy: $(grep -cE '^(warning|error)' /tmp/clippy.txt) findings"
+
       - name: Re-emit the failing build log tail as annotations
         if: failure()
         run: |
