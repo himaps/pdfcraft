@@ -79,7 +79,7 @@ jobs:
             done
             for attempt in 1 2 3; do
               if apt-get install -y --no-install-recommends -o Acquire::Retries=5 \
-                build-essential cmake perl pkg-config git curl ca-certificates nasm dpkg-dev; then
+                build-essential cmake perl pkg-config git curl ca-certificates nasm dpkg-dev libclang-dev; then
                 break
               fi
               echo "apt-get install failed (attempt $attempt), retrying in 30s" >&2
@@ -136,6 +136,32 @@ jobs:
             build-deps.log
             kylin-build.log
           if-no-files-found: ignore
+
+      - name: Mirror the logs to the ci-logs branch on failure
+        if: failure()
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ARCH: ${{ matrix.osarch }}
+        run: |
+          set -e
+          # The logs API answers 401/403 to anonymous readers, while raw reads of a
+          # branch stay public: mirror the logs to ci-logs (deepin-screenshot README,
+          # lesson 9). git is bullseye's 2.30, so no worktree --orphan here.
+          STAMP="$(date -u +%Y%m%d-%H%M%S)"
+          rm -rf /tmp/ci-logs
+          if ! git clone -q --depth 1 --branch ci-logs "https://x-access-token:${TOKEN}@github.com/${REPO}.git" /tmp/ci-logs 2>/dev/null; then
+            git init -q /tmp/ci-logs
+            git -C /tmp/ci-logs checkout -q --orphan ci-logs
+          fi
+          for f in build-deps.log kylin-build.log; do
+            [ -f "$f" ] && cp "$f" "/tmp/ci-logs/kylin-${ARCH}-${STAMP}-${f}"
+          done
+          git -C /tmp/ci-logs add -A
+          git -C /tmp/ci-logs -c user.email=actions@github.com -c user.name="github-actions[bot]" \
+            commit -q -m "ci log: kylin ${ARCH} failure at ${STAMP}" || exit 0
+          git -C /tmp/ci-logs push -q origin ci-logs
+          echo "logs mirrored to the ci-logs branch"
 
   publish-release:
     name: Attach the debs to the tag's release

@@ -96,8 +96,11 @@ deepin-screenshot 的 README「构建踩坑记录」一致，不重复。本仓�
 2. **workspace 有 git 依赖**（craft-libs，pinned rev），容器里必须有 `git`；craft-fonts 用
    `git fetch --depth 1 origin <sha>` 取 pinned ref，与 release.yml 一致。
 3. **aws-lc-sys 在容器里从源码编 C**（签名验证的 RSA 私钥操作）：需要 `cmake`、`perl`、
-   `build-essential`；amd64/arm64 用它自带的预生成绑定，不需要 libclang。若未来启用 bindgen
-   再补 `libclang-dev`。
+   `build-essential`；预生成绑定覆盖不到的目标会回退到 bindgen，所以 `libclang-dev` 常备在
+   CI 依赖里（aarch64 首跑失败后的修正）。
 4. **离线闭包很小**：两个二进制只直接链 glibc 和 libgcc_s，其余（X11/Wayland/Vulkan）都是
    运行时 dlopen，闭包只有个位数个包——与 deepin-screenshot（Qt/DTK 全家桶，75~108MB）不同，
    这是 egui 应用的天然优势。
+5. **失败日志要能匿名读**。logs API 对匿名请求返回 401/403，所以失败时除 artifact 外还会把
+   `build-deps.log` / `kylin-build.log` 镜像到 `ci-logs` 分支（raw 读公开，deepin-screenshot
+   README 踩坑记录第 9 条同款）。
