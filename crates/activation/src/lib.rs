@@ -113,7 +113,8 @@ pub fn machine_id() -> Result<String, ActivationError> {
 fn machine_id_platform() -> Result<String, ActivationError> {
     const FILES: [&str; 4] =
         ["/sys/class/dmi/id/product_uuid", "/sys/class/dmi/id/board_serial", "/etc/machine-id", "/var/lib/dbus/machine-id"];
-    FILES.iter().find_map(|f| std::fs::read_to_string(f).ok()).filter(|s| !s.trim().is_empty()).ok_or_else(|| ActivationError::NoMachineId(FILES.join(", ")))
+    let found = FILES.iter().find_map(|f| std::fs::read_to_string(f).ok()).filter(|s| !s.trim().is_empty());
+    found.ok_or_else(|| ActivationError::NoMachineId(FILES.join(", ")))
 }
 
 #[cfg(target_os = "windows")]

@@ -24,7 +24,8 @@ impl Dialog {
     pub fn new() -> Self {
         match pdfcraft_activation::machine_id() {
             Ok(id) => Self { machine_id: Some(id), ..Default::default() },
-            Err(e) => Self { machine_id: None, machine_error: Some(e.to_string()), ..Default::default() },
+            // Without a hardware identifier there is nothing to ask about; show() dismisses.
+            Err(_) => Self::default(),
         }
     }
 }
@@ -65,8 +66,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
                 "Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself."
             ))
             .color(t.text_muted),
-        )
-        .wrap();
+        );
         ui.add_space(10.0);
         ui.label(tl!("Your machine code — send it to the author:"));
         ui.horizontal(|ui| {
@@ -85,7 +85,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
         );
         ui.add_space(6.0);
         if let Some(error) = &app.activation.error {
-            ui.label(egui::RichText::new(error).color(egui::Color32::RED)).wrap();
+            ui.label(egui::RichText::new(error).color(egui::Color32::RED));
         }
         ui.add_space(10.0);
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {

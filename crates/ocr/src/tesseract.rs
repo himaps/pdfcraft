@@ -7,6 +7,11 @@
 //! pure Rust — the recognition is an external program's problem. `chi_sim` reads Simplified
 //! Chinese with ASCII and common punctuation, which is the mixed Chinese/English case.
 
+// The web build has no processes: Chinese recognition stays a desktop capability, and the pure
+// helpers (TSV parsing, the BMP writer) would be dead code there.
+#![cfg_attr(target_arch = "wasm32", allow(dead_code))]
+
+#[cfg(not(target_arch = "wasm32"))]
 use std::process::Command;
 
 use super::{Line, OcrError, Word};
@@ -22,6 +27,7 @@ pub fn is_chinese(language: &str) -> bool {
 }
 
 /// The installed tesseract's version line, or `None` when it is not on `PATH`.
+#[cfg(not(target_arch = "wasm32"))]
 pub fn version() -> Option<String> {
     let out = Command::new("tesseract").arg("--version").output().ok()?;
     if !out.status.success() {
@@ -34,13 +40,29 @@ pub fn version() -> Option<String> {
         .find(|l| !l.trim().is_empty())
 }
 
+#[cfg(target_arch = "wasm32")]
+pub fn version() -> Option<String> {
+    None
+}
+
 /// Recognise the text in an RGBA (or RGB, or grey) image with the system tesseract. `lang` is
 /// a tesseract language string (`chi_sim`, `chi_sim+eng`, …).
+#[cfg(not(target_arch = "wasm32"))]
 pub fn recognize(pixels: &[u8], width: u32, height: u32, lang: &str) -> Result<Vec<Line>, OcrError> {
     recognize_with("tesseract", pixels, width, height, lang)
 }
 
+/// The web build cannot run tesseract; the caller reports it like any other recognition error.
+#[cfg(target_arch = "wasm32")]
+pub fn recognize(pixels: &[u8], width: u32, height: u32, lang: &str) -> Result<Vec<Line>, OcrError> {
+    let _ = (pixels, width, height, lang);
+    Err(OcrError::Recognize(
+        "Chinese recognition runs the desktop's tesseract and is not part of the web build".to_owned(),
+    ))
+}
+
 /// [`recognize`], with the program named explicitly (tests run a fake).
+#[cfg(not(target_arch = "wasm32"))]
 pub fn recognize_with(
     program: &str,
     pixels: &[u8],
