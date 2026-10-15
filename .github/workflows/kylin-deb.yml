@@ -118,7 +118,10 @@ jobs:
       - name: Build and package
         run: |
           set -o pipefail
-          packaging/linux/kylin/package.sh 2>&1 | tee kylin-build.log
+          # bash -x traces every shell command with PS4 line numbers into the log, so a
+          # silent set -e death (no error text of its own) still names the failing line.
+          export PS4='+L$LINENO: '
+          bash -x packaging/linux/kylin/package.sh 2>&1 | tee kylin-build.log
 
       - name: Upload deb artifacts
         uses: actions/upload-artifact@v4
@@ -141,25 +144,31 @@ jobs:
         if: failure()
         run: |
           # The logs API answers 401/403 to anonymous readers and the job page loads
-          # its log client-side, but check-run annotations are public API: re-emit
-          # the tail of each log as ::error:: / ::warning:: lines (10 per bucket per
-          # step is GitHub's cap), so a failed run can be diagnosed without
-          # credentials. The full logs stay available as the *-logs artifact.
-          emit() {
-            f="$1"; n="$2"; kind="$3"
-            [ -f "$f" ] || return 0
-            {
-              echo "### tail of \`$f\`"
-              echo '```'
-              tail -n "$n" "$f"
-              echo '```'
-            } >>"$GITHUB_STEP_SUMMARY"
-            tail -n "$n" "$f" | cut -c1-300 | while IFS= read -r line; do
-              printf '::%s title=%s::%s\n' "$kind" "$f" "$line"
-            done
-          }
-          emit kylin-build.log 12 error
-          emit build-deps.log 6 warning
+          # its log client-side, but check-run annotations are public API. GitHub
+          # caps annotations at 10 per level per step, so the last 30 lines go out
+          # as 10 notice + 10 warning + 10 error, oldest first; every title carries
+          # its distance from the end, since identical annotations are merged. The
+          # full traced log stays available as the *-logs artifact.
+          f=kylin-build.log
+          [ -f "$f" ] || exit 0
+          tail -n 30 "$f" > /tmp/kylin-tail.txt
+          {
+            echo "### tail of \`$f\`"
+            echo '```'
+            cat /tmp/kylin-tail.txt
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
+          total=$(wc -l < /tmp/kylin-tail.txt)
+          i=0
+          while IFS= read -r line; do
+            i=$((i + 1))
+            from_end=$((total - i + 1))
+            if [ "$from_end" -le 10 ]; then kind=error
+            elif [ "$from_end" -le 20 ]; then kind=warning
+            else kind=notice
+            fi
+            printf '::%s title=%s L%d-from-end::%s\n' "$kind" "$f" "$from_end" "$(printf '%s' "$line" | cut -c1-300)"
+          done < /tmp/kylin-tail.txt
 
   publish-release:
     name: Attach the debs to the tag's release
