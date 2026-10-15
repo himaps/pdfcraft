@@ -13,7 +13,19 @@ This directory builds a second, older-baseline pair of debs inside a **Debian bu
 
 `<osarch>` is `amd64` or `aarch64`. The package version is `<version>+kylin` (sorts after
 `<version>`, before `<version>+1`), and the build carries the `kylin` label, so `--version` and
-About read `0.7.1 (kylin)` and it can't be mistaken for a regular build.
+About read `0.8.0 (kylin)` and it can't be mistaken for a regular build.
+
+这个目录的产物同时包含(2026-10-15 起):
+
+- **中文 OCR**。`language = zh-hans` 的识别走系统的 tesseract(`chi_sim`,简体为主、中英混排)，
+  离线包把 `tesseract-ocr` / `tesseract-ocr-chi-sim` 等一并打进依赖闭包，离线可用。识别出的
+  中文在结果里(automation 的 JSON、识别计数)，但不可见的可搜索文字层仍是 WinAnsi——中文词
+  会等文字层支持 CJK 字体后再写入。
+- **激活标记**(免费注册，不是收费门槛)。启动时若未激活会显示对话框：把机器码（64 个词语
+  中的 4–6 个）发给作者，作者用 `pdfcraft-cli activation 富强-立信-淳良-法治` 生成等长的激活
+  码回给你，输入后存放在安装目录（Linux: `/usr/share/pdfcraft/activation.txt`，root 写入时
+  对话框会给出确切的 sudo 命令）。
+- **Windows MSI**。release 页同时附 x64/ARM64 的 MSI 和便携 zip，方便本地测试。
 
 ## 安装（offline install）
 
