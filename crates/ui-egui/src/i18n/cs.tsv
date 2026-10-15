@@ -2502,3 +2502,15 @@ animation effects	Off	Vypnuto
 	Make properties default	Nastavit vlastnosti jako výchozí
 	Pages selected	Vybrané stránky
 	Page properties	Vlastnosti stránky
+	Activate PdfCraft	Aktivovat PdfCraft
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Aktivace je zdarma: jen dává autorovi vědět, že tato instalace existuje. Kód zůstává v tomto počítači, dokud ho sami neodešlete.
+	Your machine code — send it to the author:	Kód vašeho počítače — pošlete jej autorovi:
+	Paste the activation code you received:	Vložte přijatý aktivační kód:
+	four to six words joined by -	čtyři až šest slov spojených spojovníkem
+	Activate	Aktivovat
+	Activated. Thank you!	Aktivováno. Děkujeme!
+	The activation code does not match this machine.	Aktivační kód tomuto počítači neodpovídá.
+	That word is not in the table: {word}	Toto slovo není v seznamu: {word}
+	A code has {expected} words, this one has {got}.	Kód má {expected} slov, tento jich má {got}.
+	Couldn't write {path}: {error}	Zápis do {path} se nezdařil: {error}
+	To store the activation, run this in a terminal and restart:	Chcete-li aktivaci uložit, spusťte v terminálu tento příkaz a restartujte:

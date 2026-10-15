@@ -2433,3 +2433,15 @@ animation effects	Off	Izklopljeni
 	Make properties default	Nastavi lastnosti kot privzete
 	Pages selected	Izbrane strani
 	Page properties	Lastnosti strani
+	Activate PdfCraft	Aktiviraj PdfCraft
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Aktivacija je brezplačna: le obvesti avtorja, da ta namestitev obstaja. Koda ostane v tem računalniku, dokler je sami ne pošljete.
+	Your machine code — send it to the author:	Koda vašega računalnika — pošljite jo avtorju:
+	Paste the activation code you received:	Prilepite prejeti aktivacijsko kodo:
+	four to six words joined by -	štiri do šest besed, združenih z vezajem
+	Activate	Aktiviraj
+	Activated. Thank you!	Aktivirano. Hvala!
+	The activation code does not match this machine.	Aktivacijska koda se ne ujema s tem računalnikom.
+	That word is not in the table: {word}	Te besede ni v seznamu: {word}
+	A code has {expected} words, this one has {got}.	Koda ima {expected} besed, ta jih ima {got}.
+	Couldn't write {path}: {error}	Pisanje v {path} ni uspelo: {error}
+	To store the activation, run this in a terminal and restart:	Za shranjevanje aktivacije zaženite to v terminalu in znova zaženite:

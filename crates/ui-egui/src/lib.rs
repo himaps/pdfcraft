@@ -108,6 +108,7 @@ mod word_count_ui;
 pub use print_ui::{Handling as PrintHandling, PrintDraft, PrinterSource, Which as PrintWhich, system_printers};
 mod redact_ui;
 pub use redact_ui::{HiddenDraft, PagesDraft as RedactPagesDraft, RedactPrefs, SearchDraft as RedactSearchDraft, SearchMode as RedactSearchMode};
+pub mod activation_ui;
 pub mod i18n;
 
 /// [`PdfCraftApp::date_text`] for callers that already borrow other parts of the app.
@@ -599,6 +600,8 @@ pub struct PdfCraftApp {
     /// Whether the window currently has the app's header bar (`None` until the first frame).
     app_frame_shown: Option<bool>,
     pub password_prompt: Option<PasswordPrompt>,
+    /// The startup activation dialog: shown while this installation is not activated.
+    pub activation: activation_ui::Dialog,
     pub unlock_prompt: Option<UnlockPrompt>,
     pub full_screen: bool,
     /// Files delivered asynchronously (web drag-and-drop, web file picker).
@@ -951,6 +954,7 @@ impl PdfCraftApp {
             system_title_bar: false,
             app_frame_shown: None,
             password_prompt: None,
+            activation: activation_ui::Dialog::new(),
             unlock_prompt: None,
             full_screen: false,
             inbox: Default::default(),

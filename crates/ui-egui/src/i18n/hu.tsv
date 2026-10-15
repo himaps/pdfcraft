@@ -2427,3 +2427,15 @@ animation effects	Off	Ki
 	Make properties default	Tulajdonságok beállítása alapértelmezettként
 	Pages selected	Kijelölt oldalak
 	Page properties	Oldaltulajdonságok
+	Activate PdfCraft	PdfCraft aktiválása
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Az aktiválás ingyenes: csak arról tájékoztatja a szerzőt, hogy ez a telepítés létezik. A kód ezen a gépen marad, amíg Ön maga el nem küldi.
+	Your machine code — send it to the author:	Az Ön gépkódja — küldje el a szerzőnek:
+	Paste the activation code you received:	Illessze be a kapott aktiválási kódot:
+	four to six words joined by -	négy-hat szó, kötőjellel összekötve
+	Activate	Aktiválás
+	Activated. Thank you!	Aktiválva. Köszönjük!
+	The activation code does not match this machine.	Az aktiválási kód nem egyezik ezzel a géppel.
+	That word is not in the table: {word}	Ez a szó nincs a listában: {word}
+	A code has {expected} words, this one has {got}.	Egy kód {expected} szóból áll, ez {got} szóból áll.
+	Couldn't write {path}: {error}	A(z) {path} írása nem sikerült: {error}
+	To store the activation, run this in a terminal and restart:	Az aktiválás mentéséhez futtassa ezt terminálban, majd indítsa újra:

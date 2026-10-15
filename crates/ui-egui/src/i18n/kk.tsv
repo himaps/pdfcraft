@@ -2426,3 +2426,15 @@ animation effects	Off	Өшірулі
 	Make properties default	Қасиеттерді әдепкі ету
 	Pages selected	Таңдалған беттер
 	Page properties	Бет қасиеттері
+	Activate PdfCraft	PdfCraft белсендіру
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Белсендіру тегін: ол авторға бұл орнату бар екенін ғана хабарлайды. Код сіз өзіңіз жібергенше осы машинада қалады.
+	Your machine code — send it to the author:	Сіздің машина кодыңыз — авторға жіберіңіз:
+	Paste the activation code you received:	Алған белсендіру кодын қойыңыз:
+	four to six words joined by -	дефис арқылы қосылған төрт-алты сөз
+	Activate	Белсендіру
+	Activated. Thank you!	Белсендірілді. Рақмет!
+	The activation code does not match this machine.	Белсендіру коды осы машинаға сәйкес келмейді.
+	That word is not in the table: {word}	Бұл сөз тізімде жоқ: {word}
+	A code has {expected} words, this one has {got}.	Кодта {expected} сөз бар, бұнда {got} сөз.
+	Couldn't write {path}: {error}	{path} жазу мүмкін болмады: {error}
+	To store the activation, run this in a terminal and restart:	Белсендіруді сақтау үшін мұны терминалда орындап, қайта іске қосыңыз:

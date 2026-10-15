@@ -2428,3 +2428,15 @@ animation effects	Off	Désactivés
 	Make properties default	Définir comme propriétés par défaut
 	Pages selected	Pages sélectionnées
 	Page properties	Propriétés de la page
+	Activate PdfCraft	Activer PdfCraft
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	L'activation est gratuite : elle indique seulement à l'auteur que cette installation existe. Le code reste sur cette machine tant que vous ne l'envoyez pas vous-même.
+	Your machine code — send it to the author:	Votre code machine — envoyez-le à l'auteur :
+	Paste the activation code you received:	Collez le code d'activation que vous avez reçu :
+	four to six words joined by -	quatre à six mots joints par un tiret
+	Activate	Activer
+	Activated. Thank you!	Activé. Merci !
+	The activation code does not match this machine.	Le code d'activation ne correspond pas à cette machine.
+	That word is not in the table: {word}	Ce mot ne fait pas partie de la liste : {word}
+	A code has {expected} words, this one has {got}.	Un code comporte {expected} mots, celui-ci en a {got}.
+	Couldn't write {path}: {error}	Impossible d'écrire {path} : {error}
+	To store the activation, run this in a terminal and restart:	Pour enregistrer l'activation, exécutez ceci dans un terminal puis redémarrez :

@@ -69,7 +69,8 @@ pdfcraft-cli check  <files or dirs…> [--timeout 20] [--dpi 36] [--json out.jso
 pdfcraft-cli audit  <file.pdf> [--password PW]            find faux redactions (fails when found)
 pdfcraft-cli batch <files or dirs...> --steps convert,ocr,optimize --out-dir DIR
                       [--recursive] [--root DIR] [--stop-on-error]
-                      [--ppi 150] [--quality 60] [--dpi 300] [--language en] [--ocr-all-pages]
+                      [--ppi 150] [--quality 60] [--dpi 300] [--language en|zh-hans] [--ocr-all-pages]
+pdfcraft-cli activation <machine-code words>             the activation code to answer them (the author's side)
 pdfcraft-cli tools                                       automation tools and their JSON Schemas
 pdfcraft-cli run    <tool> [key=value …] [--root DIR] [--out image.png]
 pdfcraft-cli run    --script steps.json [--root DIR] [--report]
@@ -105,6 +106,7 @@ fn main() -> ExitCode {
         Some("tools") => tools(),
         Some("run") => run(&args[1..]),
         Some("batch") => batch::run(&args[1..]),
+        Some("activation") => activation(&args[1..]),
         Some("ui") => ui(&args[1..]),
         #[cfg(feature = "mcp")]
         Some("mcp") => mcp(&args[1..]),
@@ -162,6 +164,19 @@ fn version() -> Result<(), CliError> {
     stdout_line(format_args!("Web:     {}", pdfcraft_engine::links::APP_PAGE))?;
     stdout_line(format_args!("Source:  {}", pdfcraft_engine::links::GITHUB))?;
     Ok(())
+}
+
+/// The author's side of activation: the machine code words a user sent in (hyphen-joined or as
+/// separate arguments, `pdfcraft-cli activation 富强-立信-淳良-法治`), the activation code of the
+/// same length out. Each machine code the author answers is one activation in the ledger.
+fn activation(args: &[String]) -> Result<(), CliError> {
+    let text = args.join("-");
+    if text.trim().is_empty() {
+        return Err("activation: pass the machine code words, e.g. activation 富强-立信-淳良-法治".into());
+    }
+    let machine = pdfcraft_activation::parse(&text).map_err(|e| format!("activation: {e}"))?;
+    let code = pdfcraft_activation::activation_response(&machine);
+    stdout_line(format_args!("{}", code.render()))
 }
 
 /// Audit a document for faux redactions. Prints the findings as JSON; fails when any are

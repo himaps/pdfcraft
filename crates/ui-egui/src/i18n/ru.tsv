@@ -2341,3 +2341,15 @@ animation effects	Off	Выкл
 	Make properties default	Сделать свойства стандартными
 	Pages selected	Выделенные страницы
 	Page properties	Свойства страницы
+	Activate PdfCraft	Активировать PdfCraft
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Активация бесплатна: она лишь сообщает автору, что эта установка существует. Код остаётся на этом компьютере, пока вы сами его не отправите.
+	Your machine code — send it to the author:	Код вашего компьютера — отправьте его автору:
+	Paste the activation code you received:	Вставьте полученный код активации:
+	four to six words joined by -	от четырёх до шести слов через дефис
+	Activate	Активировать
+	Activated. Thank you!	Активировано. Спасибо!
+	The activation code does not match this machine.	Код активации не соответствует этому компьютеру.
+	That word is not in the table: {word}	Этого слова нет в списке: {word}
+	A code has {expected} words, this one has {got}.	В коде {expected} слов, здесь {got}.
+	Couldn't write {path}: {error}	Не удалось записать {path}: {error}
+	To store the activation, run this in a terminal and restart:	Чтобы сохранить активацию, выполните это в терминале и перезапустите:

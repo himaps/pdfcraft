@@ -2615,3 +2615,16 @@ key	Space	Space
 	Redact Image	Xóa nội dung nhạy cảm của hình ảnh
 	Create Link…	Tạo liên kết…
 	Recognize Text…	Nhận dạng văn bản…
+	Activate PdfCraft	Kích hoạt PdfCraft
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Việc kích hoạt là miễn phí: nó chỉ báo cho tác giả biết rằng bản cài đặt này tồn tại. Mã chỉ nằm trên máy này cho đến khi bạn tự gửi đi.
+	Your machine code — send it to the author:	Mã máy của bạn — hãy gửi cho tác giả:
+	Paste the activation code you received:	Dán mã kích hoạt bạn đã nhận:
+	four to six words joined by -	bốn đến sáu từ nối bằng dấu gạch ngang
+	Activate	Kích hoạt
+	Not now	Để sau
+	Activated. Thank you!	Đã kích hoạt. Cảm ơn!
+	The activation code does not match this machine.	Mã kích hoạt không khớp với máy này.
+	That word is not in the table: {word}	Từ đó không có trong bảng: {word}
+	A code has {expected} words, this one has {got}.	Một mã có {expected} từ, mã này có {got} từ.
+	Couldn't write {path}: {error}	Không thể ghi {path}: {error}
+	To store the activation, run this in a terminal and restart:	Để lưu kích hoạt, hãy chạy lệnh này trong terminal rồi khởi động lại:

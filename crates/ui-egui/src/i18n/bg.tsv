@@ -2391,3 +2391,15 @@ animation effects	Off	Изключени
 	Make properties default	Задаване като свойства по подразбиране
 	Pages selected	Избрани страници
 	Page properties	Свойства на страницата
+	Activate PdfCraft	Активиране на PdfCraft
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Активирането е безплатно: то само уведомява автора, че тази инсталация съществува. Кодът остава на тази машина, докато сам не го изпратите.
+	Your machine code — send it to the author:	Кодът на вашата машина — изпратете го на автора:
+	Paste the activation code you received:	Поставете получения код за активиране:
+	four to six words joined by -	четири до шест думи, свързани с тире
+	Activate	Активиране
+	Activated. Thank you!	Активирано. Благодарим!
+	The activation code does not match this machine.	Кодът за активиране не съответства на тази машина.
+	That word is not in the table: {word}	Тази дума я няма в списъка: {word}
+	A code has {expected} words, this one has {got}.	Кодът има {expected} думи, този има {got}.
+	Couldn't write {path}: {error}	Неуспешен запис в {path}: {error}
+	To store the activation, run this in a terminal and restart:	За да запазите активирането, изпълнете това в терминал и рестартирайте:

@@ -2428,3 +2428,15 @@ animation effects	Off	オフ
 	Make properties default	プロパティをデフォルトに設定
 	Pages selected	選択したページ
 	Page properties	ページのプロパティ
+	Activate PdfCraft	PdfCraft をアクティベート
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	アクティベーションは無料です。このインストールの存在を作者に知らせるだけです。コードは、あなたが送信しない限りこのマシンから出ません。
+	Your machine code — send it to the author:	あなたのマシンコード — 作者に送ってください：
+	Paste the activation code you received:	受け取ったアクティベーションコードを貼り付けてください：
+	four to six words joined by -	4〜6 個の言葉を「-」でつないだもの
+	Activate	アクティベート
+	Activated. Thank you!	アクティベートしました。ありがとうございます！
+	The activation code does not match this machine.	アクティベーションコードがこのマシンと一致しません。
+	That word is not in the table: {word}	その言葉は 64 語のリストにありません：{word}
+	A code has {expected} words, this one has {got}.	コードは {expected} 語ですが、これは {got} 語です。
+	Couldn't write {path}: {error}	{path} に書き込めませんでした：{error}
+	To store the activation, run this in a terminal and restart:	アクティベーションを保存するには、ターミナルで次を実行して再起動してください：

@@ -2424,3 +2424,15 @@ animation effects	Off	Kapalı
 	Make properties default	Özellikleri varsayılan yap
 	Pages selected	Seçilen sayfalar
 	Page properties	Sayfa özellikleri
+	Activate PdfCraft	PdfCraft'i etkinleştir
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Etkinleştirme ücretsizdir: yalnızca bu kurulumun var olduğunu yazarına bildirir. Kodu siz gönderene kadar bu makinede kalır.
+	Your machine code — send it to the author:	Makine kodunuz — yazara gönderin:
+	Paste the activation code you received:	Aldığınız etkinleştirme kodunu yapıştırın:
+	four to six words joined by -	tire ile birleştirilmiş dört ila altı kelime
+	Activate	Etkinleştir
+	Activated. Thank you!	Etkinleştirildi. Teşekkürler!
+	The activation code does not match this machine.	Etkinleştirme kodu bu makineyle eşleşmiyor.
+	That word is not in the table: {word}	Bu kelime listede yok: {word}
+	A code has {expected} words, this one has {got}.	Bir kod {expected} kelimedir, bu {got} kelimedir.
+	Couldn't write {path}: {error}	{path} yazılamadı: {error}
+	To store the activation, run this in a terminal and restart:	Etkinleştirmeyi kaydetmek için bunu bir terminalde çalıştırın ve yeniden başlatın:
