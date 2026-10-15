@@ -153,7 +153,7 @@ echo "wrote $DIST/$BASENAME.deb"
 PKGDIR="$WORK/${PACKAGE}_${DEB_VERSION}_${DEB_ARCH}-offline"
 DEPS_DIR="$PKGDIR/usr/share/pdfcraft/deps"
 CACHE="$WORK/offline-cache"
-mkdir -p "$PKGDIR" "$DEPS_DIR" "$CACHE"
+mkdir -p "$PKGDIR/DEBIAN" "$DEPS_DIR" "$CACHE"
 
 LIBS="$(ldd "$STAGE/usr/bin/pdfcraft" "$STAGE/usr/bin/pdfcraft-cli" | awk '{print $1}' | sort -u)"
 echo "linked libraries: $LIBS"
