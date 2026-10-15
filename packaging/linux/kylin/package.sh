@@ -143,6 +143,9 @@ cp -R "$STAGE/." "$PKGDIR/"
 write_control "$PKGDIR" "Kylin V20 build"
 install -m755 "$HERE/postinst.sh" "$PKGDIR/DEBIAN/postinst"
 dpkg-deb --build --root-owner-group "$PKGDIR" "$DIST/$BASENAME.deb"
+# A packaging step that silently drops the staged tree would produce a small, confident,
+# useless package, so every deb must prove it carries the application before it ships.
+dpkg-deb -c "$DIST/$BASENAME.deb" | grep -q "usr/bin/pdfcraft" || { echo "error: $BASENAME.deb does not contain the application" >&2; exit 1; }
 echo "wrote $DIST/$BASENAME.deb"
 
 # ---- offline deb --------------------------------------------------------------------------------
@@ -154,6 +157,7 @@ PKGDIR="$WORK/${PACKAGE}_${DEB_VERSION}_${DEB_ARCH}-offline"
 DEPS_DIR="$PKGDIR/usr/share/pdfcraft/deps"
 CACHE="$WORK/offline-cache"
 mkdir -p "$PKGDIR/DEBIAN" "$DEPS_DIR" "$CACHE"
+cp -R "$STAGE/." "$PKGDIR/"
 
 LIBS="$(ldd "$STAGE/usr/bin/pdfcraft" "$STAGE/usr/bin/pdfcraft-cli" | awk '{print $1}' | sort -u)"
 echo "linked libraries: $LIBS"
@@ -288,6 +292,12 @@ fi
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor || true
 fi
+# The dependency check below is meaningless without the application: a package that lost
+# its own payload must say so instead of reporting every library present.
+if [ ! -f /usr/bin/pdfcraft ] && [ ! -f /usr/bin/pdfcraft-cli ]; then
+  echo "pdfcraft: the application files are missing from this package; reinstall it." >&2
+  exit 1
+fi
 MISSING=""
 for b in /usr/bin/pdfcraft /usr/bin/pdfcraft-cli; do
   [ -f "$b" ] || continue
@@ -315,6 +325,13 @@ EOF
 chmod 755 "$PKGDIR/DEBIAN/postinst"
 write_control "$PKGDIR" "Kylin V20 offline build"
 dpkg-deb --build --root-owner-group "$PKGDIR" "$DIST/$BASENAME-offline.deb"
+CONTENTS="$(dpkg-deb -c "$DIST/$BASENAME-offline.deb")"
+check_in_offline() {
+  echo "$CONTENTS" | grep -q "$1" || { echo "error: $BASENAME-offline.deb does not contain $1" >&2; exit 1; }
+}
+check_in_offline "usr/bin/pdfcraft"
+check_in_offline "usr/share/pdfcraft/install-deps.sh"
+check_in_offline "usr/share/pdfcraft/deps/.*\.deb"
 echo "wrote $DIST/$BASENAME-offline.deb"
 
 "$STAGE/usr/bin/pdfcraft-cli" --version
