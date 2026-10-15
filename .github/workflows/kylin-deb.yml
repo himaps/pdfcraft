@@ -143,6 +143,8 @@ jobs:
       - name: Emit format and clippy findings as annotations
         # Once per run (amd64): the workspace is already compiled above, so clippy is quick,
         # and check-run annotations are the only finding channel readable without credentials.
+        # Every grep tolerates no match (with -eo pipefail an unmatched grep would fail the
+        # step and cut the later findings off).
         if: failure() || matrix.arch == 'amd64'
         run: |
           cargo fmt --check > /tmp/fmt.txt 2>&1 || true
@@ -153,14 +155,14 @@ jobs:
             printf '::error title=fmt L%d::%s\n' "$n" "$line"
           done < /tmp/fmt.txt
           n=0
-          grep -E '^error(\[|:)' /tmp/clippy.txt | head -10 | while IFS= read -r line; do
+          { grep -E '^error(\[|:)' /tmp/clippy.txt || true; } | head -10 | while IFS= read -r line; do
             printf '::error title=clippy::%s\n' "$line"
           done
           n=0
-          grep '^warning: ' /tmp/clippy.txt | head -10 | while IFS= read -r line; do
+          { grep '^warning: ' /tmp/clippy.txt || true; } | head -10 | while IFS= read -r line; do
             printf '::warning title=clippy::%s\n' "$line"
           done
-          echo "fmt: $(wc -l < /tmp/fmt.txt) lines, clippy: $(grep -cE '^(warning|error)' /tmp/clippy.txt) findings"
+          echo "fmt: $(wc -l < /tmp/fmt.txt) diff lines, clippy: $(grep -cE '^(warning|error)' /tmp/clippy.txt || true) findings"
 
       - name: Re-emit the failing build log tail as annotations
         if: failure()
