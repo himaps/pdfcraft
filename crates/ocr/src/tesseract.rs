@@ -1,11 +1,13 @@
 //! Chinese recognition through the system's tesseract (Apache-2.0, run out of process).
 //!
 //! The bundled ocrs models read the Latin alphabet only. Chinese recognition needs different
-//! models, and the practical source of them is the distro's tesseract: `tesseract-ocr` plus
-//! `tesseract-ocr-chi-sim` bring both the recogniser and the trained data, sit in every
-//! Debian/Ubuntu/Kylin archive (so the offline deb can carry them), and keep the app itself
-//! pure Rust — the recognition is an external program's problem. `chi_sim` reads Simplified
-//! Chinese with ASCII and common punctuation, which is the mixed Chinese/English case.
+//! models, and the practical source of them is tesseract: on Linux the distro's packages
+//! (`tesseract-ocr` + `tesseract-ocr-chi-sim`, carried by the Kylin offline deb), on Windows a
+//! tesseract folder the installer puts beside the executable (packaging/windows/package.ps1:
+//! a winget-installed UB-Mannheim build with the Simplified Chinese data added from
+//! tessdata_best). The app stays pure Rust — the recognition is an external program's problem.
+//! `chi_sim` reads Simplified Chinese with ASCII and common punctuation, which is the mixed
+//! Chinese/English case.
 
 // The web build has no processes: Chinese recognition stays a desktop capability, and the pure
 // helpers (TSV parsing, the BMP writer) would be dead code there.
@@ -13,6 +15,8 @@
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::process::Command;
+
+use std::{ffi::OsString, path::Path, path::PathBuf};
 
 use super::{Line, OcrError, Word};
 
@@ -26,10 +30,26 @@ pub fn is_chinese(language: &str) -> bool {
     l.starts_with("zh") || l.starts_with("chi_sim")
 }
 
-/// The installed tesseract's version line, or `None` when it is not on `PATH`.
+/// The tesseract program to run and, when the package carries it, its data directory: on Windows
+/// the installer puts `tesseract\` beside pdfcraft.exe, on Linux the distro's `tesseract` is on
+/// PATH. The directory, when present, is passed to the program as `--tessdata-dir`.
+fn resolve() -> (OsString, Option<PathBuf>) {
+    #[cfg(windows)]
+    if let Some(exe_dir) = std::env::current_exe().ok().and_then(|e| e.parent().map(Path::to_path_buf)) {
+        let exe = exe_dir.join(r"tesseract\tesseract.exe");
+        if exe.is_file() {
+            let data = exe.parent().map(|d| d.join("tessdata"));
+            return (exe.into_os_string(), data);
+        }
+    }
+    (OsString::from("tesseract"), None)
+}
+
+/// The installed tesseract's version line, or `None` when it is not available.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn version() -> Option<String> {
-    let out = Command::new("tesseract").arg("--version").output().ok()?;
+    let (program, _) = resolve();
+    let out = Command::new(&program).arg("--version").output().ok()?;
     if !out.status.success() {
         return None;
     }
@@ -47,24 +67,35 @@ pub fn version() -> Option<String> {
 
 /// Recognise the text in an RGBA (or RGB, or grey) image with the system tesseract. `lang` is
 /// a tesseract language string (`chi_sim`, `chi_sim+eng`, …).
-#[cfg(not(target_arch = "wasm32"))]
 pub fn recognize(pixels: &[u8], width: u32, height: u32, lang: &str) -> Result<Vec<Line>, OcrError> {
-    recognize_with("tesseract", pixels, width, height, lang)
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let (program, tessdata) = resolve();
+        run(&program, tessdata.as_deref(), pixels, width, height, lang)
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = (&pixels, width, height, lang);
+        Err(OcrError::Recognize(
+            "Chinese recognition runs the desktop's tesseract and is not part of the web build".to_owned(),
+        ))
+    }
 }
 
-/// The web build cannot run tesseract; the caller reports it like any other recognition error.
-#[cfg(target_arch = "wasm32")]
-pub fn recognize(pixels: &[u8], width: u32, height: u32, lang: &str) -> Result<Vec<Line>, OcrError> {
-    let _ = (pixels, width, height, lang);
-    Err(OcrError::Recognize(
-        "Chinese recognition runs the desktop's tesseract and is not part of the web build".to_owned(),
-    ))
+/// [`recognize`], with the program named explicitly and no bundled data directory (tests run a
+/// fake).
+#[cfg(not(target_arch = "wasm32"))]
+pub fn recognize_with(program: &str, pixels: &[u8], width: u32, height: u32, lang: &str) -> Result<Vec<Line>, OcrError> {
+    run(std::ffi::OsStr::new(program), None, pixels, width, height, lang)
 }
 
-/// [`recognize`], with the program named explicitly (tests run a fake).
+/// One tesseract invocation: the page bitmap goes to a temporary file (written by hand: one
+/// more image codec in the dependency tree would be the only reason this module has deps), the
+/// words come back as TSV.
 #[cfg(not(target_arch = "wasm32"))]
-pub fn recognize_with(
-    program: &str,
+fn run(
+    program: &std::ffi::OsStr,
+    tessdata: Option<&Path>,
     pixels: &[u8],
     width: u32,
     height: u32,
@@ -76,20 +107,23 @@ pub fn recognize_with(
     let Some(bmp) = bitmap(pixels, width, height) else {
         return Err(OcrError::Recognize(format!("unsupported image: {width}×{height}, {} bytes", pixels.len())));
     };
-    // tesseract reads files, so the image goes to a temporary BMP (written by hand: one more
-    // image codec in the dependency tree would be the only reason this module has deps).
     let input = std::env::temp_dir().join(format!("pdfcraft-ocr-{}-{:?}.bmp", std::process::id(), std::time::Instant::now()));
     std::fs::write(&input, &bmp).map_err(|e| OcrError::Recognize(e.to_string()))?;
-    let run = Command::new(program)
-        .arg(&input)
-        .arg("stdout")
-        .args(["-l", lang, "--psm", "3", "tsv"])
-        .output();
+    let mut args: Vec<OsString> = vec![input.clone().into_os_string(), "stdout".into(), "-l".into(), lang.into(), "--psm".into(), "3".into()];
+    if let Some(dir) = tessdata {
+        args.push("--tessdata-dir".into());
+        args.push(dir.as_os_str().to_os_string());
+    }
+    args.push("tsv".into());
+    let out = Command::new(program)
+        .args(&args)
+        .output()
+        .map_err(|e| match e.kind() {
+            std::io::ErrorKind::NotFound => OcrError::TesseractMissing,
+            _ => OcrError::Recognize(e.to_string()),
+        });
     let _ = std::fs::remove_file(&input);
-    let out = run.map_err(|e| match e.kind() {
-        std::io::ErrorKind::NotFound => OcrError::TesseractMissing,
-        _ => OcrError::Recognize(e.to_string()),
-    })?;
+    let out = out?;
     if !out.status.success() {
         let stderr = String::from_utf8_lossy(&out.stderr);
         let lower = stderr.to_lowercase();

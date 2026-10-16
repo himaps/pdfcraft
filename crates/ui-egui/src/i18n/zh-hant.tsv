@@ -2396,3 +2396,4 @@ animation effects	Off	關
 	A code has {expected} words, this one has {got}.	啟用碼應有 {expected} 個詞語，實際有 {got} 個。
 	Couldn't write {path}: {error}	無法寫入 {path}：{error}
 	To store the activation, run this in a terminal and restart:	要保存啟用資訊，請在終端機執行下面的命令後重新啟動：
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	中文辨識由系統的 tesseract 完成：Windows 安裝包與離線包已內建。

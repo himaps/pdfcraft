@@ -2514,3 +2514,4 @@ animation effects	Off	Vypnuto
 	A code has {expected} words, this one has {got}.	Kód má {expected} slov, tento jich má {got}.
 	Couldn't write {path}: {error}	Zápis do {path} se nezdařil: {error}
 	To store the activation, run this in a terminal and restart:	Chcete-li aktivaci uložit, spusťte v terminálu tento příkaz a restartujte:
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	Rozpoznávání čínštiny používá systémový tesseract: je součástí Windows a offline balíčku.

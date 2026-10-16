@@ -104,6 +104,17 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> (boo
                 }
             });
             ui.end_row();
+            // Where the Chinese engine comes from: not obvious, and the reason a scan whose
+            // pages already have text reads nothing until the checkbox above is ticked.
+            if pdfcraft_engine::ocr::tesseract::is_chinese(&d.language) {
+                ui.label(
+                    egui::RichText::new(tl!(
+                        "Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages."
+                    ))
+                    .color(t.text_muted),
+                );
+                ui.end_row();
+            }
             ui.label(tl!("Output"));
             egui::ComboBox::from_id_salt("ocr-output").selected_text(tl!("Searchable Image (Exact)")).width(220.0).show_ui(ui, |ui| {
                 let _ = ui

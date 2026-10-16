@@ -2718,3 +2718,4 @@ certificate	Version	الإصدار
 	A code has {expected} words, this one has {got}.	الرمز مكوَّن من {expected} كلمات، وهذا فيه {got}.
 	Couldn't write {path}: {error}	تعذّرت الكتابة في {path}: {error}
 	To store the activation, run this in a terminal and restart:	لحفظ التفعيل، شغِّل هذا في الطرفية ثم أعد التشغيل:
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	التعرف على الصينية يستخدم tesseract الخاص بالنظام: وهو مضمّن في حزم Windows والحزمة دون اتصال.

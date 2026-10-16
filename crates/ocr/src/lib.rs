@@ -44,11 +44,19 @@ pub enum OcrError {
     Recognize(String),
     #[error("the image is empty")]
     EmptyImage,
-    /// Shown to end users; the offline deb carries the package, Kylin installs it with
-    /// `sudo apt install tesseract-ocr`.
+    /// Shown to end users: Linux takes the distro's packages (the Kylin offline deb carries
+    /// them), Windows packages carry the program in their tesseract folder.
+    #[cfg(target_os = "linux")]
     #[error("the tesseract program is not installed (Chinese recognition runs the system's tesseract: sudo apt install tesseract-ocr)")]
     TesseractMissing,
+    #[cfg(not(target_os = "linux"))]
+    #[error("the tesseract program is not installed: this package normally carries it in its tesseract folder (reinstall, or install Tesseract OCR and add it to PATH)")]
+    TesseractMissing,
+    #[cfg(target_os = "linux")]
     #[error("the tesseract language data {0} is not installed (sudo apt install tesseract-ocr-chi-sim)")]
+    TesseractData(String),
+    #[cfg(not(target_os = "linux"))]
+    #[error("the tesseract language data {0} is not installed: the package carries it in its tesseract folder (reinstall)")]
     TesseractData(String),
 }
 

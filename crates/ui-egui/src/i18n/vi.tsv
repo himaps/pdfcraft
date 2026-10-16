@@ -2628,3 +2628,4 @@ key	Space	Space
 	A code has {expected} words, this one has {got}.	Một mã có {expected} từ, mã này có {got} từ.
 	Couldn't write {path}: {error}	Không thể ghi {path}: {error}
 	To store the activation, run this in a terminal and restart:	Để lưu kích hoạt, hãy chạy lệnh này trong terminal rồi khởi động lại:
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	Việc nhận dạng tiếng Trung dùng tesseract của hệ thống: nó có sẵn trong gói Windows và gói ngoại tuyến.

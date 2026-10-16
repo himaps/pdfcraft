@@ -2403,3 +2403,4 @@ animation effects	Off	Изключени
 	A code has {expected} words, this one has {got}.	Кодът има {expected} думи, този има {got}.
 	Couldn't write {path}: {error}	Неуспешен запис в {path}: {error}
 	To store the activation, run this in a terminal and restart:	За да запазите активирането, изпълнете това в терминал и рестартирайте:
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	Разпознаването на китайски използва системния tesseract: той е в пакетите за Windows и офлайн пакета.

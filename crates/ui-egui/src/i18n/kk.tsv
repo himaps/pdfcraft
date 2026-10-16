@@ -2438,3 +2438,4 @@ animation effects	Off	Өшірулі
 	A code has {expected} words, this one has {got}.	Кодта {expected} сөз бар, бұнда {got} сөз.
 	Couldn't write {path}: {error}	{path} жазу мүмкін болмады: {error}
 	To store the activation, run this in a terminal and restart:	Белсендіруді сақтау үшін мұны терминалда орындап, қайта іске қосыңыз:
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	Қытай тану жүйелік tesseract қолданады: ол Windows және офлайн дестелерде бар.

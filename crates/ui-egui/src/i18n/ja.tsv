@@ -2440,3 +2440,4 @@ animation effects	Off	オフ
 	A code has {expected} words, this one has {got}.	コードは {expected} 語ですが、これは {got} 語です。
 	Couldn't write {path}: {error}	{path} に書き込めませんでした：{error}
 	To store the activation, run this in a terminal and restart:	アクティベーションを保存するには、ターミナルで次を実行して再起動してください：
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	中国語の認識はシステムの tesseract で行います。Windows 版とオフライン パッケージに同梱されています。

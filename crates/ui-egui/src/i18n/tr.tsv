@@ -2436,3 +2436,4 @@ animation effects	Off	Kapalı
 	A code has {expected} words, this one has {got}.	Bir kod {expected} kelimedir, bu {got} kelimedir.
 	Couldn't write {path}: {error}	{path} yazılamadı: {error}
 	To store the activation, run this in a terminal and restart:	Etkinleştirmeyi kaydetmek için bunu bir terminalde çalıştırın ve yeniden başlatın:
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	Çince tanıma, sistemdeki tesseract'ı kullanır: Windows ve çevrimdışı paketlerde bulunur.

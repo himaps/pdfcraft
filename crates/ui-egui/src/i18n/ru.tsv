@@ -2353,3 +2353,4 @@ animation effects	Off	Выкл
 	A code has {expected} words, this one has {got}.	В коде {expected} слов, здесь {got}.
 	Couldn't write {path}: {error}	Не удалось записать {path}: {error}
 	To store the activation, run this in a terminal and restart:	Чтобы сохранить активацию, выполните это в терминале и перезапустите:
+	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	Распознавание китайского использует системный tesseract: он входит в пакеты для Windows и офлайн-пакет.
