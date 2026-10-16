@@ -110,27 +110,46 @@ if (-not (Test-Path (Join-Path $Models 'ATTRIBUTION.txt')) -or -not (Get-ChildIt
 
 # ---- Chinese OCR: tesseract beside the binaries ------------------------------------------------
 # language zh-hans runs the system's tesseract on Linux; Windows has no system tesseract, so the
-# package carries one (the winget UB-Mannheim build, Apache-2.0) with the Simplified Chinese data
-# added from tessdata_best (pinned tag). The app looks for tesseract\tesseract.exe beside
-# pdfcraft.exe (crates/ocr/src/tesseract.rs).
+# package carries one with the Simplified Chinese data added from tessdata_best (pinned tag).
+# The app looks for tesseract\tesseract.exe beside pdfcraft.exe (crates/ocr/src/tesseract.rs).
+# Failures are re-emitted as ::error:: annotations: they are the only finding channel readable
+# without credentials.
 $Tesseract = Join-Path $Stage 'tesseract'
 New-Item -ItemType Directory -Force -Path $Tesseract | Out-Null
-$TessInstalled = 'C:\Program Files\Tesseract-OCR'
-if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) {
-  Invoke-Native 'install tesseract-ocr (winget, UB-Mannheim build)' {
-    winget install --id UB-Mannheim.TesseractOCR --exact --silent --disable-interactivity --accept-package-agreements --accept-source-agreements
+try {
+  $TessInstalled = 'C:\Program Files\Tesseract-OCR'
+  if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) {
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+      Invoke-Native 'install tesseract-ocr (winget, UB-Mannheim build)' {
+        winget install --id UB-Mannheim.TesseractOCR --scope machine --exact --silent --disable-interactivity --accept-package-agreements --accept-source-agreements
+      }
+    } else {
+      Write-Output 'winget is not available on this image; falling back to chocolatey'
+    }
   }
+  if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) {
+    Invoke-Native 'install tesseract-ocr (chocolatey)' { choco install tesseract -y --no-progress }
+  }
+  if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) {
+    # A package manager put it somewhere else: find it before giving up.
+    $found = Get-ChildItem 'C:\Program Files', "$env:LOCALAPPDATA\Programs" -Filter tesseract.exe -Recurse -Depth 3 -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($found) { $TessInstalled = $found.DirectoryName }
+  }
+  if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) { throw "tesseract.exe not found after winget/choco (looked in $TessInstalled and the common program folders)" }
+  Write-Output "tesseract from: $TessInstalled"
+  Copy-Item -Recurse -Force (Join-Path $TessInstalled '*') $Tesseract
+  # The installer does not carry Simplified Chinese: take the pinned tessdata_best copy.
+  Invoke-Native 'chi_sim.traineddata (tessdata_best 4.1.0)' {
+    Invoke-WebRequest 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/chi_sim.traineddata' -OutFile (Join-Path $Tesseract 'tessdata\chi_sim.traineddata')
+  }
+  if (-not (Test-Path (Join-Path $Tesseract 'tessdata\chi_sim.traineddata'))) { throw 'chi_sim.traineddata was not downloaded' }
+  # Apache-2.0 redistribution: carry the licence beside the program (the full ATTRIBUTION entry is
+  # a follow-up: fetching it through xtask needs a new artifact kind).
+  Copy-Item (Join-Path $Root 'LICENSE-APACHE') (Join-Path $Tesseract 'LICENSE-tesseract-Apache-2.0.txt')
+} catch {
+  Write-Output "::error title=tesseract staging::$($_.Exception.Message)"
+  throw
 }
-if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) { throw "tesseract.exe not found in $TessInstalled after winget" }
-Copy-Item -Recurse -Force (Join-Path $TessInstalled '*') $Tesseract
-# The installer does not carry Simplified Chinese: take the pinned tessdata_best copy.
-Invoke-Native 'chi_sim.traineddata (tessdata_best 4.1.0)' {
-  Invoke-WebRequest 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/chi_sim.traineddata' -OutFile (Join-Path $Tesseract 'tessdata\chi_sim.traineddata')
-}
-if (-not (Test-Path (Join-Path $Tesseract 'tessdata\chi_sim.traineddata'))) { throw 'chi_sim.traineddata was not downloaded' }
-# Apache-2.0 redistribution: carry the licence beside the program (the full ATTRIBUTION entry is
-# a follow-up: fetching it through xtask needs a new artifact kind).
-Copy-Item (Join-Path $Root 'LICENSE-APACHE') (Join-Path $Tesseract 'LICENSE-tesseract-Apache-2.0.txt')
 
 # ---- MSI ---------------------------------------------------------------------------------------
 $Msi = Join-Path $Dist "pdfcraft-$Version-windows-$Arch.msi"
