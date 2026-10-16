@@ -108,12 +108,36 @@ if (-not (Test-Path (Join-Path $Models 'ATTRIBUTION.txt')) -or -not (Get-ChildIt
   throw "no OCR models in $Models after cargo xtask models"
 }
 
+# ---- Chinese OCR: tesseract beside the binaries ------------------------------------------------
+# language zh-hans runs the system's tesseract on Linux; Windows has no system tesseract, so the
+# package carries one (the winget UB-Mannheim build, Apache-2.0) with the Simplified Chinese data
+# added from tessdata_best (pinned tag). The app looks for tesseract\tesseract.exe beside
+# pdfcraft.exe (crates/ocr/src/tesseract.rs).
+$Tesseract = Join-Path $Stage 'tesseract'
+New-Item -ItemType Directory -Force -Path $Tesseract | Out-Null
+$TessInstalled = 'C:\Program Files\Tesseract-OCR'
+if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) {
+  Invoke-Native 'install tesseract-ocr (winget, UB-Mannheim build)' {
+    winget install --id UB-Mannheim.TesseractOCR --exact --silent --disable-interactivity --accept-package-agreements --accept-source-agreements
+  }
+}
+if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) { throw "tesseract.exe not found in $TessInstalled after winget" }
+Copy-Item -Recurse -Force (Join-Path $TessInstalled '*') $Tesseract
+# The installer does not carry Simplified Chinese: take the pinned tessdata_best copy.
+Invoke-Native 'chi_sim.traineddata (tessdata_best 4.1.0)' {
+  Invoke-WebRequest 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/chi_sim.traineddata' -OutFile (Join-Path $Tesseract 'tessdata\chi_sim.traineddata')
+}
+if (-not (Test-Path (Join-Path $Tesseract 'tessdata\chi_sim.traineddata'))) { throw 'chi_sim.traineddata was not downloaded' }
+# Apache-2.0 redistribution: carry the licence beside the program (the full ATTRIBUTION entry is
+# a follow-up: fetching it through xtask needs a new artifact kind).
+Copy-Item (Join-Path $Root 'LICENSE-APACHE') (Join-Path $Tesseract 'LICENSE-tesseract-Apache-2.0.txt')
+
 # ---- MSI ---------------------------------------------------------------------------------------
 $Msi = Join-Path $Dist "pdfcraft-$Version-windows-$Arch.msi"
 Invoke-Native 'wix build' {
   wix build (Join-Path $PSScriptRoot 'pdfcraft.wxs') -arch $Arch `
     (Join-Path $PSScriptRoot 'installer-ui.wxs') `
-    -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "ModelsDir=$Models" -d "IconPath=$(Join-Path $Root 'assets\app-icon\pdfcraft.ico')" `
+    -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "ModelsDir=$Models" -d "TesseractDir=$Tesseract" -d "IconPath=$(Join-Path $Root 'assets\app-icon\pdfcraft.ico')" `
     -o $Msi
 }
 # Inspect the built MSI, not just the XML, before signing/publishing it. In a child process, so
@@ -132,6 +156,7 @@ foreach ($f in 'NOTICE', 'LICENSE-document.txt') {
   Copy-Item (Join-Path $Stage $f) $Portable
 }
 Copy-Item -Recurse $Models (Join-Path $Portable 'models')
+Copy-Item -Recurse $Tesseract (Join-Path $Portable 'tesseract')
 foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE') {
   $p = Join-Path $Root $f
   if (Test-Path $p) { Copy-Item $p $Portable }

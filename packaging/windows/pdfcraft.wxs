@@ -82,6 +82,7 @@
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="INSTALLFOLDER" Name="PdfCraft">
         <Directory Id="ModelsFolder" Name="models" />
+        <Directory Id="TesseractFolder" Name="tesseract" />
       </Directory>
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder" />
@@ -90,6 +91,7 @@
     <Feature Id="Main" Title="PdfCraft" Level="1">
       <ComponentGroupRef Id="PdfcraftFiles" />
       <ComponentGroupRef Id="PdfcraftModels" />
+      <ComponentGroupRef Id="PdfcraftTesseract" />
     </Feature>
   </Package>
 
@@ -218,6 +220,14 @@
          component each, so new models ship without naming them here. -->
     <ComponentGroup Id="PdfcraftModels" Directory="ModelsFolder">
       <Files Include="$(var.ModelsDir)\*" />
+    </ComponentGroup>
+
+    <!-- Chinese OCR (language zh-hans) runs the tesseract the package carries in tesseract\
+         beside pdfcraft.exe, where the app looks for it (crates/ocr/src/tesseract.rs):
+         a winget-installed UB-Mannheim build (Apache-2.0) with the Simplified Chinese data from
+         tessdata_best added by package.ps1, harvested recursively for its tessdata\ subfolder. -->
+    <ComponentGroup Id="PdfcraftTesseract" Directory="TesseractFolder">
+      <Files Include="$(var.TesseractDir)\**" />
     </ComponentGroup>
   </Fragment>
 </Wix>
