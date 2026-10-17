@@ -266,16 +266,13 @@ jobs:
           - `pdfcraft-<version>-kylin-<arch>.deb` — regular package; a desktop system provides
             the runtime libraries the app loads at run time (X11/Wayland, xkbcommon, Vulkan/GL).
           - `pdfcraft-<version>-kylin-<arch>-offline.deb` — for minimal or offline machines:
-            bundles the runtime dependency closure, the OCR models and the tesseract packages
-            for Chinese recognition. After `dpkg -i`, the installer runs automatically (10s
-            delay, journalctl -u pdfcraft-deps), or run
+            bundles the runtime dependency closure and the OCR models. After `dpkg -i`, the
+            installer runs automatically (10s delay, journalctl -u pdfcraft-deps), or run
             `sudo /usr/share/pdfcraft/install-deps.sh` once.
           - `pdfcraft-<version>-windows-<arch>.msi` (+ portable zip) — Windows x64/ARM64
             installers for local testing.
 
-          OCR: `en` uses the bundled models; `zh-hans` (Simplified Chinese, mixed
-          Chinese/English pages included) runs the system's tesseract, which the offline deb
-          carries. Activation is a free local registration marker: the app asks once at startup
+          Activation is a free local registration marker: the app asks once at startup
           and stores the answer beside the installed files.
 
           Requires glibc >= 2.31: Kylin V20 / Ubuntu Kylin (Ubuntu 20.04 base), UOS/deepin

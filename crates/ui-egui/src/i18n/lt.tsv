@@ -2684,4 +2684,3 @@ key	Space	Tarpas
 	A code has {expected} words, this one has {got}.	Kodas turi {expected} žodžius, šis turi {got}.
 	Couldn't write {path}: {error}	Nepavyko įrašyti į {path}: {error}
 	To store the activation, run this in a terminal and restart:	Norėdami įrašyti aktyvaciją, vykdykite tai terminale ir paleiskite iš naujo:
-	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	Kinų atpažinimas naudoja sistemos tesseract: jis yra Windows ir autonominiuose paketuose.

@@ -178,12 +178,6 @@ if [ -z "${TOP// /}" ]; then
   echo "error: could not map any linked library to a Debian package" >&2
   exit 1
 fi
-# Chinese OCR runs the system's tesseract, an external program, so no ldd line names it: its
-# packages join the closure explicitly, and their Depends pull the libraries and the trained
-# data in. Bullseye's tesseract 4.1.1 matches focal/Kylin's, so the data files are compatible.
-EXTRA="tesseract-ocr tesseract-ocr-chi-sim tesseract-ocr-eng tesseract-ocr-osd"
-echo "offline deps extra (external programs):$EXTRA"
-TOP="$TOP $EXTRA"
 echo "offline deps direct closure:$TOP"
 
 PKGS="$TOP"

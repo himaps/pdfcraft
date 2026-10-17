@@ -2439,4 +2439,3 @@ animation effects	Off	Ki
 	A code has {expected} words, this one has {got}.	Egy kód {expected} szóból áll, ez {got} szóból áll.
 	Couldn't write {path}: {error}	A(z) {path} írása nem sikerült: {error}
 	To store the activation, run this in a terminal and restart:	Az aktiválás mentéséhez futtassa ezt terminálban, majd indítsa újra:
-	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	A kínai felismerés a rendszer tesseractját használja: a Windows és az offline csomagok tartalmazzák.

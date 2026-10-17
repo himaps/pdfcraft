@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex};
 
 use pdfcraft_render::{PageInfo, PageRenderer, RenderConfig, RenderRequest, RequestKind};
 
-pub use pdfcraft_ocr::{LANGUAGES, Models, Ocr, OcrError, PlacedWord, tesseract};
+pub use pdfcraft_ocr::{LANGUAGES, Models, Ocr, OcrError, PlacedWord};
 
 use crate::{DocId, Edit, EditError, Session};
 
@@ -18,8 +18,7 @@ use crate::{DocId, Edit, EditError, Session};
 pub struct OcrSettings {
     /// Resolution pages are rendered at for recognition (Acrobat's "Downsample to" choices).
     pub dpi: f32,
-    /// Language code from [`LANGUAGES`]: `en` reads through the bundled models, `zh-hans`
-    /// through the system's tesseract (mixed Chinese/English pages included).
+    /// Language code from [`LANGUAGES`] (the models read the Latin alphabet, whatever this says).
     pub language: String,
     /// Leave pages that already have text alone (Acrobat reports "page contains renderable
     /// text" and skips them). When `false`, such pages are read too (a picture on a page that
@@ -73,34 +72,21 @@ impl OcrPage {
     }
 }
 
-/// The recogniser, loaded once (it takes a moment) and shared. Without the bundled models the
-/// Latin path reports [`OcrError::NoModels`] when used, but Chinese recognition (the system's
-/// tesseract) still works.
-pub enum Recognizer {
-    Ocrs(Ocr),
-    TesseractOnly,
-}
-
-/// The recogniser, loaded once and shared.
-pub fn engine() -> Result<Arc<Recognizer>, String> {
-    static OCR: Mutex<Option<Arc<Recognizer>>> = Mutex::new(None);
+/// The recogniser, loaded once (it takes a moment) and shared.
+pub fn engine() -> Result<Arc<Ocr>, String> {
+    static OCR: Mutex<Option<Arc<Ocr>>> = Mutex::new(None);
     let mut slot = OCR.lock().unwrap_or_else(|e| e.into_inner());
     if let Some(o) = slot.as_ref() {
         return Ok(o.clone());
     }
-    let o = Arc::new(match Ocr::find() {
-        Ok(ocr) => Recognizer::Ocrs(ocr),
-        Err(OcrError::NoModels) => Recognizer::TesseractOnly,
-        Err(e) => return Err(e.to_string()),
-    });
+    let o = Arc::new(Ocr::find().map_err(|e| e.to_string())?);
     *slot = Some(o.clone());
     Ok(o)
 }
 
-/// Whether recognition can work at all: the bundled models (Latin) or the system's tesseract
-/// (Chinese).
+/// Whether the recognition models are installed.
 pub fn available() -> bool {
-    Models::find().is_some() || tesseract::version().is_some()
+    Models::find().is_some()
 }
 
 /// Everything recognition needs from a document, detached from the session.
@@ -117,10 +103,8 @@ pub struct OcrJob {
 
 impl OcrJob {
     /// Read the pages. `progress(done, total)` is called before each page; returning `false`
-    /// stops (the pages read so far are returned). The settings' language picks the backend:
-    /// `zh-hans` (any Chinese language) reads through the system's tesseract, everything else
-    /// through the bundled models.
-    pub fn run(self, ocr: &Recognizer, mut progress: impl FnMut(usize, usize) -> bool) -> Vec<OcrPage> {
+    /// stops (the pages read so far are returned).
+    pub fn run(self, ocr: &Ocr, mut progress: impl FnMut(usize, usize) -> bool) -> Vec<OcrPage> {
         let config = RenderConfig { password: self.password.as_deref().map(Arc::from), ..Default::default() };
         let mut r = PageRenderer::new(self.bytes.clone(), config);
         let mut out = Vec::new();
@@ -146,15 +130,7 @@ impl OcrJob {
                 out.push(skip(&e));
                 continue;
             }
-            let lines = if tesseract::is_chinese(&self.settings.language) {
-                tesseract::recognize(&shot.rgba, shot.width, shot.height, tesseract::CHINESE_LANG)
-            } else {
-                match ocr {
-                    Recognizer::Ocrs(o) => o.recognize(&shot.rgba, shot.width, shot.height),
-                    Recognizer::TesseractOnly => Err(OcrError::NoModels),
-                }
-            };
-            let lines = match lines {
+            let lines = match ocr.recognize(&shot.rgba, shot.width, shot.height) {
                 Ok(l) => l,
                 Err(e) => {
                     out.push(skip(&e.to_string()));
@@ -216,26 +192,9 @@ impl Session {
 
     /// Add the words found by [`OcrJob::run`] as one undoable step. Returns the number of words.
     pub fn apply_ocr(&mut self, id: DocId, found: &[OcrPage]) -> Result<usize, EditError> {
-        // The invisible text layer is Helvetica in WinAnsiEncoding: a recognised word the font
-        // cannot hold (Chinese) would degrade to `?` on the page, so it stays out of the layer
-        // until the layer has a CJK font. Recognition still reports it.
-        let writable = |w: &&PlacedWord| w.text.chars().all(|c| pdfcraft_fonts::win_ansi_byte(c).is_some());
-        let edits: Vec<Edit> = found
-            .iter()
-            .filter(|p| !p.words.is_empty())
-            .map(|p| Edit::AddOcrText { page: p.page, words: p.words.iter().filter(writable).cloned().collect() })
-            .filter(|e| match e {
-                Edit::AddOcrText { words, .. } => !words.is_empty(),
-                _ => true,
-            })
-            .collect();
-        let words: usize = edits
-            .iter()
-            .map(|e| match e {
-                Edit::AddOcrText { words, .. } => words.len(),
-                _ => 0,
-            })
-            .sum();
+        let edits: Vec<Edit> =
+            found.iter().filter(|p| !p.words.is_empty()).map(|p| Edit::AddOcrText { page: p.page, words: p.words.clone() }).collect();
+        let words = found.iter().map(|p| p.words.len()).sum();
         if !edits.is_empty() {
             self.apply(id, Edit::Batch { label: "Recognize text".into(), edits })?;
         }
@@ -276,7 +235,7 @@ pub fn recognize_file(
     bytes: Arc<Vec<u8>>,
     password: Option<&str>,
     settings: OcrSettings,
-    ocr: &Recognizer,
+    ocr: &Ocr,
     progress: impl FnMut(usize, usize) -> bool,
 ) -> Result<FileResult, String> {
     let mut s = Session::new();

@@ -2440,4 +2440,3 @@ animation effects	Off	Désactivés
 	A code has {expected} words, this one has {got}.	Un code comporte {expected} mots, celui-ci en a {got}.
 	Couldn't write {path}: {error}	Impossible d'écrire {path} : {error}
 	To store the activation, run this in a terminal and restart:	Pour enregistrer l'activation, exécutez ceci dans un terminal puis redémarrez :
-	Chinese recognition runs the system's tesseract: it ships in the Windows and offline packages.	La reconnaissance du chinois utilise le tesseract du système : il est inclus dans les paquets Windows et hors ligne.
