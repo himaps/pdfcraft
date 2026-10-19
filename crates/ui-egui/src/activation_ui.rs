@@ -78,11 +78,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
         });
         ui.add_space(10.0);
         ui.label(tl!("Paste the activation code you received:"));
-        ui.add(
-            egui::TextEdit::singleline(&mut app.activation.typed)
-                .hint_text(tl!("four to six words joined by -"))
-                .desired_width(f32::INFINITY),
-        );
+        ui.add(egui::TextEdit::singleline(&mut app.activation.typed).hint_text(tl!("four to six words joined by -")).desired_width(f32::INFINITY));
         ui.add_space(6.0);
         if let Some(error) = &app.activation.error {
             ui.label(egui::RichText::new(error).color(egui::Color32::RED));
@@ -114,13 +110,10 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
             Err(ActivationError::Write(path, error)) => {
                 // The install directory is root-owned on Linux; the words are safe to quote
                 // (they come from the 64-word table), so the exact command is shown.
-                let code = pdfcraft_activation::parse(&app.activation.typed)
-                    .map(|c| c.render())
-                    .unwrap_or_else(|_| app.activation.typed.trim().to_owned());
-                app.activation.error = Some(crate::i18n::fmt(
-                    &tl!("Couldn't write {path}: {error}"),
-                    &[("path", path.as_str()), ("error", error.as_str())],
-                ));
+                let code =
+                    pdfcraft_activation::parse(&app.activation.typed).map(|c| c.render()).unwrap_or_else(|_| app.activation.typed.trim().to_owned());
+                app.activation.error =
+                    Some(crate::i18n::fmt(&tl!("Couldn't write {path}: {error}"), &[("path", path.as_str()), ("error", error.as_str())]));
                 app.notify(tl!("To store the activation, run this in a terminal and restart:"));
                 app.notify(format!(
                     "sudo mkdir -p \"$(dirname '{path}')\" && printf '%s\\n' '{code}' | sudo tee '{path}' >/dev/null",
@@ -129,8 +122,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
                 ));
             }
             Err(ActivationError::BadWord { word, .. }) => {
-                app.activation.error =
-                    Some(crate::i18n::fmt(&tl!("That word is not in the table: {word}"), &[("word", &word)]));
+                app.activation.error = Some(crate::i18n::fmt(&tl!("That word is not in the table: {word}"), &[("word", &word)]));
             }
             Err(ActivationError::WrongLength { expected, got }) => {
                 app.activation.error = Some(crate::i18n::fmt(

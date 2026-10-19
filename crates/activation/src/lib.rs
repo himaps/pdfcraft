@@ -88,12 +88,7 @@ pub fn index(word: &str) -> Result<u8, ActivationError> {
 /// Parses a typed or transmitted code: words separated by [`SEPARATOR`] (whitespace around a
 /// word is kept out), each of them one of [`WORDS`].
 pub fn parse(text: &str) -> Result<Code, ActivationError> {
-    let indices = text
-        .split(SEPARATOR)
-        .map(|w| w.trim())
-        .filter(|w| !w.is_empty())
-        .map(index)
-        .collect::<Result<Vec<_>, _>>()?;
+    let indices = text.split(SEPARATOR).map(|w| w.trim()).filter(|w| !w.is_empty()).map(index).collect::<Result<Vec<_>, _>>()?;
     if indices.is_empty() {
         return Err(ActivationError::BadWord { word: text.trim().to_owned(), total: WORDS.len() });
     }
@@ -111,8 +106,7 @@ pub fn machine_id() -> Result<String, ActivationError> {
 
 #[cfg(target_os = "linux")]
 fn machine_id_platform() -> Result<String, ActivationError> {
-    const FILES: [&str; 4] =
-        ["/sys/class/dmi/id/product_uuid", "/sys/class/dmi/id/board_serial", "/etc/machine-id", "/var/lib/dbus/machine-id"];
+    const FILES: [&str; 4] = ["/sys/class/dmi/id/product_uuid", "/sys/class/dmi/id/board_serial", "/etc/machine-id", "/var/lib/dbus/machine-id"];
     let found = FILES.iter().find_map(|f| std::fs::read_to_string(f).ok()).filter(|s| !s.trim().is_empty());
     found.ok_or_else(|| ActivationError::NoMachineId(FILES.join(", ")))
 }
@@ -181,13 +175,10 @@ pub fn storage_path() -> Option<PathBuf> {
 
 /// Whether `path` holds the activation code of this machine.
 pub fn status_at(path: &PathBuf, machine_id: &str) -> Result<Code, ActivationError> {
-    let stored = parse(&std::fs::read_to_string(path).map_err(|e| {
-        if e.kind() == std::io::ErrorKind::NotFound {
-            ActivationError::NotActivated
-        } else {
-            ActivationError::Io(e.to_string())
-        }
-    })?)?;
+    let stored =
+        parse(&std::fs::read_to_string(path).map_err(|e| {
+            if e.kind() == std::io::ErrorKind::NotFound { ActivationError::NotActivated } else { ActivationError::Io(e.to_string()) }
+        })?)?;
     let expected = activation_code(machine_id);
     if stored.len() != expected.len() {
         return Err(ActivationError::WrongLength { expected: expected.len(), got: stored.len() });
@@ -265,19 +256,19 @@ mod tests {
     /// machine *words* (what the author receives), not from the machine identifier.
     #[test]
     fn known_machine_ids_have_known_codes() {
-        let cases: [(&str, usize, [u8; 6], [u8; 6]); 3] = [
-            ("test-machine-001", 6, [56, 28, 30, 2, 3, 23], [61, 40, 4, 55, 45, 46]),
-            ("KYLIN-V20-Desktop", 4, [31, 28, 47, 16], [19, 28, 49, 21]),
-            ("linux-abc123", 5, [8, 0, 5, 52, 51], [32, 36, 4, 21, 18]),
+        let cases: [(&str, usize, &[u8], &[u8]); 3] = [
+            ("test-machine-001", 6, &[56, 28, 30, 2, 3, 23], &[61, 40, 4, 55, 45, 46]),
+            ("KYLIN-V20-Desktop", 4, &[31, 28, 47, 16], &[19, 28, 49, 21]),
+            ("linux-abc123", 5, &[8, 0, 5, 52, 51], &[32, 36, 4, 21, 18]),
         ];
         for (id, n, user, act) in cases {
             let machine = machine_code(id);
             assert_eq!(machine.len(), n, "{id}");
-            assert_eq!(machine.indices, user[..n], "{id}");
+            assert_eq!(machine.indices, user, "{id}");
             // From the identifier (the app's view)…
             let activation = activation_code(id);
             assert_eq!(activation.len(), n, "{id}");
-            assert_eq!(activation.indices, act[..n], "{id}");
+            assert_eq!(activation.indices, act, "{id}");
             // …and from the words alone (the author's view): both agree.
             assert_eq!(activation_response(&parse(&machine.render()).unwrap()), activation, "{id}");
             assert_eq!(parse(&activation.render()).unwrap(), activation, "{id}");
@@ -308,9 +299,13 @@ mod tests {
         let typed = activation_code(id).render();
         activate_at(&at, id, &format!("  {typed}  ")).unwrap();
         assert!(status_at(&at, id).is_ok());
-        // Another machine's activation code has the same shape and is rejected.
-        let other = activation_code("test-machine-002").render();
-        assert!(matches!(activate_at(&at, id, &other), Err(ActivationError::Mismatch)));
+        // A wrong code of the right length (this machine's response with its first word
+        // changed to a different one) is rejected as a mismatch — deterministic, unlike a
+        // code derived from another machine whose word count could differ.
+        let mut wrong = activation_code(id).indices;
+        wrong[0] = (wrong[0] + 1) % 64;
+        let wrong = Code { indices: wrong }.render();
+        assert!(matches!(activate_at(&at, id, &wrong), Err(ActivationError::Mismatch)));
         // A code of a different length is a length error before it is a mismatch.
         let long = format!("{typed}-{typed}");
         assert!(matches!(activate_at(&at, id, &long), Err(ActivationError::WrongLength { expected: 6, got: 12 })));
