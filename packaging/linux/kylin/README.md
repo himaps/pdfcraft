@@ -22,6 +22,9 @@ About read `0.8.0 (kylin)` and it can't be mistaken for a regular build.
   码回给你，输入后存放在安装目录（Linux: `/usr/share/pdfcraft/activation.txt`，root 写入时
   对话框会给出确切的 sudo 命令）。
 - **Windows MSI**。release 页同时附 x64/ARM64 的 MSI 和便携 zip，方便本地测试。
+- **真实麒麟环境验证**。每次构建会额外在 [distrotwin/kylin](https://github.com/distrotwin/kylin)
+  的 V10 SP1（2503）容器（麒麟公开 apt 归档自举，glibc 2.31 / GCC 9.3，与介质 ABI 逐项核对一致）
+  里安装离线 deb 并运行 `pdfcraft-cli`，确认安装与 ABI 在真实麒麟包环境成立。
 - 中文 OCR：tesseract 方案已在实测后移除；计划改走 PaddleOCR 官方模型（PP-OCRv5，ONNX），
   见仓库研究报告与后续提交。
 

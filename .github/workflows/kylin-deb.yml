@@ -141,8 +141,6 @@ jobs:
           if-no-files-found: ignore
 
       - name: Emit format and clippy findings as annotations
-        # Once per run (amd64): the workspace is already compiled above, so clippy is quick,
-        # and check-run annotations are the only finding channel readable without credentials.
         # Every grep tolerates no match (with -eo pipefail an unmatched grep would fail the
         # step and cut the later findings off).
         if: failure() || matrix.arch == 'amd64'
@@ -193,6 +191,47 @@ jobs:
             fi
             printf '::%s title=%s L%d-from-end::%s\n' "$kind" "$f" "$from_end" "$(printf '%s' "$line" | cut -c1-300)"
           done < /tmp/kylin-tail.txt
+
+  verify-on-kylin:
+    name: Install and run on real Kylin V10 SP1 (amd64)
+    needs: build-deb
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # distrotwin/kylin: 从麒麟公开 apt 归档自举的真实麒麟包环境（见
+    # github.com/distrotwin/kylin）。v10sp1 = 桌面 V10 SP1（2503），glibc 2.31、
+    # GCC 9.3、Ubuntu 20.04 血脉——正是本包的目标机。CI 里按指南要求钉带日期的 tag。
+    container: ghcr.io/distrotwin/kylin:v10sp1-base-amd64-20260903
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: Download the deb artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pdfcraft-kylin-amd64
+          path: debs
+
+      - name: Install the GUI runtime libraries a Kylin desktop provides
+        # base 档容器没有桌面运行库；真实麒麟桌面自带。显式从麒麟归档安装,
+        # 同时验证我们 deb 的运行库假设(包名与版本)在真实麒麟源里都成立。
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            libxkbcommon0 libxkbcommon-x11-0 libwayland-client0 libx11-6 libxcursor1 \
+            libxi6 libxrandr2 libgl1 libegl1 libfontconfig1 libfreetype6
+
+      - name: Install the offline deb (dpkg -i, as an offline user would)
+        run: |
+          dpkg -i debs/pdfcraft-*-kylin-amd64-offline.deb
+          dpkg -s pdfcraft | grep -q "^Status: install ok installed" || {
+            echo "pdfcraft is not installed cleanly" >&2; exit 1; }
+
+      - name: The binary must run with no missing libraries
+        run: |
+          ldd /usr/bin/pdfcraft | tee /tmp/ldd.txt
+          ! grep -q "not found" /tmp/ldd.txt
+          ldd /usr/bin/pdfcraft-cli | tee /tmp/ldd-cli.txt
+          ! grep -q "not found" /tmp/ldd-cli.txt
+          /usr/bin/pdfcraft-cli --version
 
   build-msi:
     name: Build Windows ${{ matrix.arch }} MSI
