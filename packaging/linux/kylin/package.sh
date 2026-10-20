@@ -22,7 +22,7 @@
 #   - dpkg-dev (dpkg-deb) and working apt sources for the offline closure.
 #
 # In a fresh bullseye container, point the security suite at archive.debian.org first
-# (.github/workflows/kylin-deb.yml does this): the bullseye-security index is still served on
+# (.github/workflows/kylin-v10-sp1-deb.yml does this): the bullseye-security index is still served on
 # deb.debian.org, but its .debs have been moved to the archive, so `apt-get update` succeeds and
 # installs then 404. Only the security suite belongs on the archive; main stays on the fast mirror.
 #
