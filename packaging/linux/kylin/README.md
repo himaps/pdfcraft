@@ -65,7 +65,7 @@ systemd 不可用时回退为提示手动执行：
 
 ## 构建与发布
 
-CI（`.github/workflows/kylin-deb.yml`）在原生 runner（amd64 + aarch64）的
+CI（`.github/workflows/kylin-v10-sp1-deb.yml`）在原生 runner（amd64 + aarch64）的
 `debian:bullseye-slim` 容器里跑 `packaging/linux/kylin/package.sh`：装 bullseye 的构建依赖和
 rustup（bullseye 自带的 rustc 1.63 低于本仓库 `rust-version`），克隆 craft-fonts（与
 release.yml 同一 pinned ref），`cargo build --release --locked`，再打出两个 deb。推送 main
