@@ -6,7 +6,7 @@
 # deepin-screenshot packaging workflow. Pushes to main build automatically (as that repo's
 # master does); a v* tag also attaches the debs to the tag's release; any branch can be built
 # on demand through workflow_dispatch.
-name: Kylin deb
+name: Kylin V10 SP1 deb
 
 on:
   push:
@@ -20,7 +20,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: kylin-deb-${{ github.ref }}
+  group: kylin-v10-sp1-deb-${{ github.ref }}
   cancel-in-progress: false
 
 defaults:
