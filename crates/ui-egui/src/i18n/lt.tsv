@@ -119,6 +119,9 @@
 	Optimize PDF…	Optimizuoti PDF…
 	Protect using password…	Apsaugoti slaptažodžiu…
 	Remove security	Pašalinti apsaugą
+	Remove security without password	Saugumą šalinti be slaptažodžio
+	Remove restrictions without password	Šalinti apribojimus be slaptažodžio
+	Remove restrictions	Šalinti apribojimus
 	Security properties…	Apsaugos savybės…
 	Organize pages	Tvarkyti puslapius
 	Rotate pages…	Pasukti puslapius…
@@ -2269,6 +2272,7 @@ comment menu	Edit	Redaguoti
 	Security method	Apsaugos būdas
 	Security settings must allow assistive technology to read the content ("Enable text access for screen reader devices"). Change the document's security to allow it.	Saugos nuostatos turi leisti pagalbinėms technologijoms skaityti turinį („Leisti ekrano skaitymo programoms pasiekti tekstą“). Pakeiskite dokumento saugos nuostatas, kad tai būtų leidžiama.
 	Security will be removed when you save	Apsauga bus pašalinta įrašant
+	Restrictions will be removed when you save	Apribojimai bus pašalinti įrašant
 	Self-signed	Savarankiškai pasirašytas
 	Serial number	Serijos numeris
 	Set alternate text	Nustatyti alternatyvųjį tekstą
@@ -2679,6 +2683,7 @@ key	Space	Tarpas
 	Pages selected	Pasirinkti puslapiai
 	Page properties	Puslapio ypatybės
 	Activate PdfCraft	Aktyvinti PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	Nepavyko perskaityti šio kompiuterio aparatinės įrangos identifikatoriaus; aktyvinti neįmanoma.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Aktyvavimas nemokamas: jis tik praneša autoriui, kad ši instalacija egzistuoja. Kodas lieka šiame kompiuteryje, kol pats jį išsiunčiate.
 	Your machine code — send it to the author:	Jūsų kompiuterio kodas — atsiųskite jį autoriui:
 	Paste the activation code you received:	Įklijuokite gautą aktyvavimo kodą:

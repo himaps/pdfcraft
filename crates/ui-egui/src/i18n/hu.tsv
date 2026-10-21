@@ -264,6 +264,9 @@
 	Remove background	Háttér eltávolítása
 	Protect using password…	Jelszavas védelem…
 	Remove security	Védelem eltávolítása
+	Remove security without password	Biztonság eltávolítása jelszó nélkül
+	Remove restrictions without password	Korlátozások eltávolítása jelszó nélkül
+	Remove restrictions	Korlátozások eltávolítása
 	Security properties…	Biztonság tulajdonságai…
 	Organize pages	Oldalak rendezése
 	New bookmark	Új könyvjelző
@@ -2434,6 +2437,7 @@ animation effects	Off	Ki
 	Pages selected	Kijelölt oldalak
 	Page properties	Oldaltulajdonságok
 	Activate PdfCraft	PdfCraft aktiválása
+	Cannot read a hardware identifier on this machine; activation is not possible.	A gép hardverazonosítója nem olvasható be; az aktiválás nem lehetséges.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Az aktiválás ingyenes: csak arról tájékoztatja a szerzőt, hogy ez a telepítés létezik. A kód ezen a gépen marad, amíg Ön maga el nem küldi.
 	Your machine code — send it to the author:	Az Ön gépkódja — küldje el a szerzőnek:
 	Paste the activation code you received:	Illessze be a kapott aktiválási kódot:

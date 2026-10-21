@@ -1958,6 +1958,13 @@ fn protecting_through_tools() {
     ok(&mut b, "doc_save", json!({ "doc": owner, "path": "open.pdf" }));
     let mut c = auto(&dir);
     ok(&mut c, "doc_open", json!({ "path": "open.pdf" }));
+    // This build also drops the restrictions without the permissions password (force, beyond
+    // what Acrobat allows): the file opened without it, so its contents were already decrypted.
+    assert_eq!(ok(&mut b, "doc_unprotect", json!({ "doc": re, "force": true }))["security"]["protected"], false);
+    assert!(ok(&mut b, "text_extract", json!({ "doc": re }))["pages"][0]["text"].as_str().is_some_and(|t| t.contains("Page")));
+    ok(&mut b, "doc_save", json!({ "doc": re, "path": "forced-open.pdf" }));
+    let mut d = auto(&dir);
+    ok(&mut d, "doc_open", json!({ "path": "forced-open.pdf" }));
 }
 
 /// A form secured with "fill-sign" changes and no open password (how secured forms are usually

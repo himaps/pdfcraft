@@ -289,6 +289,9 @@
 	Remove background	Usuń tło
 	Protect using password…	Chroń hasłem…
 	Remove security	Usuń zabezpieczenia
+	Remove security without password	Usuń zabezpieczenia bez hasła
+	Remove restrictions without password	Usuń ograniczenia bez hasła
+	Remove restrictions	Usuń ograniczenia
 	Security properties…	Właściwości zabezpieczeń…
 	Organize pages	Organizuj strony
 	New bookmark	Nowa zakładka
@@ -2410,3 +2413,4 @@ animation effects	Off	Wyłączone
 	Make properties default	Ustaw właściwości jako domyślne
 	Pages selected	Zaznaczone strony
 	Page properties	Właściwości strony
+	Cannot read a hardware identifier on this machine; activation is not possible.	Nie można odczytać identyfikatora sprzętowego tego komputera; aktywacja niemożliwa.

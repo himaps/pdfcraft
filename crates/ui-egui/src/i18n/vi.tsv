@@ -122,6 +122,9 @@ theme	Appearance	Giao diện
 	Optimize PDF…	Tối ưu hóa PDF…
 	Protect using password…	Bảo vệ bằng mật khẩu…
 	Remove security	Gỡ bảo mật
+	Remove security without password	Xóa bảo mật không cần mật khẩu
+	Remove restrictions without password	Xóa hạn chế không cần mật khẩu
+	Remove restrictions	Xóa hạn chế
 	Security properties…	Thuộc tính bảo mật…
 	Organize pages	Sắp xếp trang
 	Rotate pages…	Xoay trang…
@@ -2259,6 +2262,7 @@ comment menu	Edit	Sửa
 	Security method	Phương thức bảo mật
 	Security settings must allow assistive technology to read the content ("Enable text access for screen reader devices"). Change the document's security to allow it.	Cài đặt bảo mật phải cho phép công nghệ hỗ trợ đọc nội dung ("Cho phép truy cập văn bản cho thiết bị đọc màn hình"). Hãy thay đổi bảo mật của tài liệu để cho phép.
 	Security will be removed when you save	Bảo mật sẽ bị gỡ khi bạn lưu
+	Restrictions will be removed when you save	Các hạn chế sẽ bị gỡ khi bạn lưu
 	Self-signed	Tự ký
 	Serial number	Số sê-ri
 	Set alternate text	Đặt văn bản thay thế
@@ -2618,6 +2622,7 @@ key	Space	Space
 	Create Link…	Tạo liên kết…
 	Recognize Text…	Nhận dạng văn bản…
 	Activate PdfCraft	Kích hoạt PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	Không thể đọc định danh phần cứng của máy này; không thể kích hoạt.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Việc kích hoạt là miễn phí: nó chỉ báo cho tác giả biết rằng bản cài đặt này tồn tại. Mã chỉ nằm trên máy này cho đến khi bạn tự gửi đi.
 	Your machine code — send it to the author:	Mã máy của bạn — hãy gửi cho tác giả:
 	Paste the activation code you received:	Dán mã kích hoạt bạn đã nhận:

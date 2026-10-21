@@ -720,8 +720,14 @@ impl Document {
         self.security.as_deref()
     }
 
-    /// What the opening password allows (`None` for unencrypted documents: everything).
+    /// What the opening password allows (`None` for unencrypted documents: everything). A
+    /// document whose security the next save removes ([`remove_encryption`](Self::remove_encryption),
+    /// [`set_encryption`](Self::set_encryption) with an empty permissions grant aside) already
+    /// reads as its next state: what is being written is what the session works on.
     pub fn permissions(&self) -> Option<pdfcraft_crypt::Permissions> {
+        if self.encryption_changed && self.out_security.is_none() {
+            return None;
+        }
         self.security().map(|s| s.permissions())
     }
 

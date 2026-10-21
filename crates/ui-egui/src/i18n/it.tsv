@@ -290,6 +290,9 @@
 	Remove background	Rimuovi sfondo
 	Protect using password…	Proteggi con password…
 	Remove security	Rimuovi protezione
+	Remove security without password	Rimuovi sicurezza senza password
+	Remove restrictions without password	Rimuovi restrizioni senza password
+	Remove restrictions	Rimuovi restrizioni
 	Security properties…	Proprietà di sicurezza…
 	Organize pages	Organizza pagine
 	New bookmark	Nuovo segnalibro
@@ -2647,6 +2650,7 @@ certificate	Self-signed	Autofirmato
 certificate	SHA-1 digest	Impronta SHA-1
 certificate	SHA-256 digest	Impronta SHA-256
 	Activate PdfCraft	Attiva PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	Impossibile leggere l’identificatore hardware di questo computer; l’attivazione non è possibile.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	L'attivazione è gratuita: serve solo a far sapere all'autore che questa installazione esiste. Il codice resta su questo computer finché non lo invii tu.
 	Your machine code — send it to the author:	Il codice della tua macchina — invialo all'autore:
 	Paste the activation code you received:	Incolla il codice di attivazione ricevuto:

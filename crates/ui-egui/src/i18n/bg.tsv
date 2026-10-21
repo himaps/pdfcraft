@@ -1815,6 +1815,9 @@
 	Export all images…	Експортирай всички изображения…
 	Protect using password…	Защити с парола…
 	Remove security	Премахни защитата
+	Remove security without password	Премахни сигурността без парола
+	Remove restrictions without password	Премахни ограничения без парола
+	Remove restrictions	Премахни ограничения
 	Security properties…	Свойства на защитата…
 	Organize pages	Организиране на страници
 	New bookmark	Нова отметка
@@ -2398,6 +2401,7 @@ animation effects	Off	Изключени
 	Pages selected	Избрани страници
 	Page properties	Свойства на страницата
 	Activate PdfCraft	Активиране на PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	Не можа да се прочете хардуерният идентификатор на тази машина; активиране не е възможно.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Активирането е безплатно: то само уведомява автора, че тази инсталация съществува. Кодът остава на тази машина, докато сам не го изпратите.
 	Your machine code — send it to the author:	Кодът на вашата машина — изпратете го на автора:
 	Paste the activation code you received:	Поставете получения код за активиране:

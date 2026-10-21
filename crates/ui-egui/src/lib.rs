@@ -3129,6 +3129,10 @@ impl eframe::App for PdfCraftApp {
             ctx.request_repaint();
             return;
         }
+        // Activation gate: the app does not run until a valid code is entered.
+        if !activation_ui::gate(self, ui) {
+            return;
+        }
         for view in &mut self.views {
             view.begin_render_frame();
         }

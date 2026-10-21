@@ -1736,6 +1736,7 @@
 	The document's security settings don't allow copying text and images	文档安全设置不允许复制文本和图像
 	Open a document first	请先打开文档
 	Security will be removed when you save	保存时将删除安全性设置
+	Restrictions will be removed when you save	保存时将移除限制
 	Click text or an image to edit it	单击文本或图像进行编辑
 	Drag a rectangle to create a link; double-click a link to edit it	拖动矩形创建链接；双击链接进行编辑
 	There are no redaction marks to apply	没有可应用的密文标记
@@ -1822,6 +1823,9 @@
 	Export all images…	导出所有图像…
 	Protect using password…	使用密码保护…
 	Remove security	删除安全性设置
+	Remove security without password	强制解除安全性设置
+	Remove restrictions without password	强制解除安全性设置
+	Remove restrictions	强制解除安全性设置
 	Security properties…	安全性属性…
 	Organize pages	组织页面
 	New bookmark	新建书签
@@ -2399,6 +2403,7 @@ animation effects	Off	关
 	Pages selected	选定的页面
 	Page properties	页面属性
 	Activate PdfCraft	激活 PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	无法读取此机器的硬件标识符；无法激活。
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	激活完全免费：只是让作者知道有这份安装。词语码只保存在本机，是否发送由你自己决定。
 	Your machine code — send it to the author:	你的机器码——请发给作者：
 	Paste the activation code you received:	粘贴你收到的激活码：

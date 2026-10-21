@@ -194,8 +194,15 @@ impl PdfCraftApp {
                 self.dialog = Some(Dialog::Protect);
             }
             "protect.remove" => {
-                if self.apply_edit(Edit::RemoveProtection) {
+                if self.apply_edit(Edit::RemoveProtection { force: false }) {
                     self.notify_tr("Security will be removed when you save");
+                }
+            }
+            // This build's addition, beyond Acrobat: the restrictions of a document opened
+            // without its permissions password go without asking for it (Needs::Unlock gates it).
+            "protect.force_remove" => {
+                if self.apply_edit(Edit::RemoveProtection { force: true }) {
+                    self.notify_tr("Restrictions will be removed when you save");
                 }
             }
             "page.number" => {

@@ -1666,6 +1666,9 @@
 	Update background…	Ενημέρωση φόντου…
 	Protect using password…	Προστασία με κωδικό πρόσβασης…
 	Remove security	Κατάργηση προστασίας
+	Remove security without password	Κατάργηση ασφάλειας χωρίς κωδικό
+	Remove restrictions without password	Κατάργηση περιορισμών χωρίς κωδικό
+	Remove restrictions	Κατάργηση περιορισμών
 	Security properties…	Ιδιότητες ασφάλειας…
 	New bookmark	Νέος σελιδοδείκτης
 	New bookmarks from structure	Νέοι σελιδοδείκτες από τη δομή
@@ -2440,3 +2443,4 @@ animation effects	Off	Ανενεργά
 	Make properties default	Ορισμός ιδιοτήτων ως προεπιλογή
 	Pages selected	Επιλεγμένες σελίδες
 	Page properties	Ιδιότητες σελίδας
+	Cannot read a hardware identifier on this machine; activation is not possible.	Δεν είναι δυνατή η ανάγνωση του αναγνωριστικού υλικού αυτού του υπολογιστή· η ενεργοποίηση δεν είναι δυνατή.

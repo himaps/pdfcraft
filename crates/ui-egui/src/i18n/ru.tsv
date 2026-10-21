@@ -286,6 +286,9 @@
 	Remove background	Удалить фон
 	Protect using password…	Защитить паролем…
 	Remove security	Удалить защиту
+	Remove security without password	Снять защиту без пароля
+	Remove restrictions without password	Снять ограничения без пароля
+	Remove restrictions	Снять ограничения
 	Security properties…	Свойства безопасности…
 	Organize pages	Организовать страницы
 	New bookmark	Новая закладка
@@ -2348,6 +2351,7 @@ animation effects	Off	Выкл
 	Pages selected	Выделенные страницы
 	Page properties	Свойства страницы
 	Activate PdfCraft	Активировать PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	Не удалось прочитать аппаратный идентификатор этого компьютера; активация невозможна.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Активация бесплатна: она лишь сообщает автору, что эта установка существует. Код остаётся на этом компьютере, пока вы сами его не отправите.
 	Your machine code — send it to the author:	Код вашего компьютера — отправьте его автору:
 	Paste the activation code you received:	Вставьте полученный код активации:

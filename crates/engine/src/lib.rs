@@ -1730,8 +1730,13 @@ pub enum Edit {
     FlattenFillSign,
     /// Protect with passwords and permissions (written by the next save, which is a full rewrite).
     Protect(Protection),
-    /// Remove password security (needs the owner password).
-    RemoveProtection,
+    /// Remove password security (needs the owner password). With `force`, a document opened
+    /// without it (its user password was empty, or was given at open) loses its restrictions
+    /// too: either way the file is already fully decrypted, so this only drops the `/Encrypt`
+    /// dictionary. Deliberately beyond what Acrobat allows.
+    RemoveProtection {
+        force: bool,
+    },
     /// Several edits applied as one undoable step (all or nothing).
     Batch {
         label: String,
@@ -1934,6 +1939,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Flatten Fill & Sign",
     "Protect with password",
     "Remove security",
+    "Remove restrictions",
 ];
 
 /// The names of the batches built below L7, which an interface shows in the same places as
@@ -2068,7 +2074,8 @@ impl Edit {
             Edit::Flatten { .. } => Label::of("Flatten"),
             Edit::FlattenFillSign => Label::of("Flatten Fill & Sign"),
             Edit::Protect(_) => Label::of("Protect with password"),
-            Edit::RemoveProtection => Label::of("Remove security"),
+            Edit::RemoveProtection { force: true } => Label::of("Remove restrictions"),
+            Edit::RemoveProtection { force: false } => Label::of("Remove security"),
             // A batch carries its own name, already worded by whoever built it.
             // A batch carries its name as text, so the wording is only the hole (see `BATCH_LABELS`).
             Edit::Batch { label, .. } => Label::with("{batch}", label.as_str()),
@@ -2173,13 +2180,16 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
                 Err(EditError::NotPermitted("filling in form fields"))
             }
         }
-        Edit::Protect(_) | Edit::RemoveProtection => {
+        Edit::Protect(_) | Edit::RemoveProtection { force: false } => {
             if unrestricted(p) {
                 Ok(())
             } else {
                 Err(EditError::NotPermitted("changing security"))
             }
         }
+        // The forced removal is the point of `force`: the document is open, so its contents
+        // are already decrypted and only the restrictions go.
+        Edit::RemoveProtection { force: true } => Ok(()),
         Edit::SetInfo { .. }
         | Edit::AddHeaderFooter { .. }
         | Edit::AddWatermark { .. }
@@ -2713,7 +2723,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             };
             doc.set_encryption(&params).map_err(|e| EditError::Protection(e.to_string()))?;
         }
-        Edit::RemoveProtection => {
+        Edit::RemoveProtection { force: _ } => {
             if doc.output_handler().is_none() {
                 return Err(EditError::Protection("the document isn't protected".into()));
             }
@@ -2772,7 +2782,7 @@ fn keys_after(edit: &Edit) -> Option<Keys> {
         Edit::Protect(p) => {
             Some(Keys { render: p.open_password.clone(), reopen: p.permissions_password.clone().or_else(|| p.open_password.clone()) })
         }
-        Edit::RemoveProtection => Some(Keys::default()),
+        Edit::RemoveProtection { .. } => Some(Keys::default()),
         Edit::Batch { edits, .. } => edits.iter().rev().find_map(keys_after),
         _ => None,
     }

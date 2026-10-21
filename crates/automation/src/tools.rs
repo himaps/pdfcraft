@@ -820,10 +820,16 @@ pub fn tools() -> Vec<ToolDef> {
             }),
             &["doc"],
         )),
-        t("doc_unprotect", "Remove security", "Remove password security (the document must have been opened with its permissions password, or have none). Applied by the next doc_save. Undoable.")
+        t("doc_unprotect", "Remove security", "Remove password security. By default the document must have been opened with its permissions password, or have none. With force, drop the restrictions of a document opened without the permissions password instead (its user password was empty, or was the password given to doc_open): the document is open either way, so only the encryption and with it the restrictions go. Use force only on documents you have the right to change. Applied by the next doc_save. Undoable.")
             .cmd("protect.remove")
             .destructive()
-            .with(schema(json!({ "doc": doc() }), &["doc"])),
+            .with(schema(
+                json!({
+                    "doc": doc(),
+                    "force": { "type": "boolean", "description": "Drop the restrictions without the permissions password." },
+                }),
+                &["doc"],
+            )),
         t("page_replace", "Replace pages", "Replace the content of pages with pages of another PDF (same count). Links, comments, form fields and bookmarks on the original pages stay, as in Acrobat. Undoable.")
             .cmd("page.replace")
             .with(schema(json!({ "doc": doc(), "pages": pages("to replace"), "path": path_arg(), "from_pages": pages("of the other file, in order (default: its first pages)") }), &["doc", "pages", "path"])),

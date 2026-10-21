@@ -293,6 +293,9 @@
 	Remove background	إزالة الخلفية
 	Protect using password…	حماية بكلمة مرور…
 	Remove security	إزالة الحماية
+	Remove security without password	إزالة الأمان بدون كلمة مرور
+	Remove restrictions without password	إزالة القيود بدون كلمة مرور
+	Remove restrictions	إزالة القيود
 	Security properties…	خصائص الأمان…
 	Organize pages	تنظيم الصفحات
 	New bookmark	إشارة مرجعية جديدة
@@ -2712,6 +2715,7 @@ certificate	Version	الإصدار
 	Pages selected	الصفحات المحددة
 	Page properties	خصائص الصفحة
 	Activate PdfCraft	تفعيل PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	لا يمكن قراءة معرّف الجهاز لهذا الجهاز؛ التنشيط غير ممكن.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	التفعيل مجاني: الغرض منه فقط إخبار المؤلف بأن هذه النسخة موجودة. يبقى الرمز على هذا الجهاز ما لم ترسله أنت.
 	Your machine code — send it to the author:	رمز جهازك — أرسله إلى المؤلف:
 	Paste the activation code you received:	الصق رمز التفعيل الذي استلمته:

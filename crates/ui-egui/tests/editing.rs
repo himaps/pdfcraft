@@ -2151,6 +2151,29 @@ fn remove_security_asks_for_the_permissions_password_first() {
     assert!(doc.dirty && doc.security_summary().is_none(), "security is removed (written by the next save)");
 }
 
+/// This build's addition, beyond Acrobat: dropping a restricted document's restrictions without
+/// its permissions password asks for nothing — the document is open, so only /Encrypt goes.
+#[test]
+fn remove_restrictions_without_the_password_asks_for_nothing() {
+    let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
+        let mut app = PdfCraftApp::new();
+        app.set_option("language", "en").unwrap();
+        app.open_bytes("locked.pdf", None, protected("", "owner", 0b0100)).unwrap();
+        app
+    });
+    h.run_steps(4);
+    // The command exists next to Remove security and is enabled exactly while restrictions hold.
+    assert!(h.state_mut().execute("protect.force_remove"));
+    h.run_steps(2);
+    assert!(h.state().unlock_prompt.is_none(), "no password is asked");
+    let id = h.state().active_ids().unwrap().1;
+    let doc = h.state().session.get(id).unwrap();
+    assert!(doc.dirty && doc.security_summary().is_none(), "restrictions dropped (written by the next save)");
+    // On an unrestricted document there is nothing to remove, and the command says so.
+    assert!(!h.state_mut().execute("protect.force_remove"));
+    h.run_steps(2);
+}
+
 /// A secured form still says it is one and offers Highlight fields: the security notice joins
 /// the form's instead of replacing it.
 #[test]

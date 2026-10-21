@@ -293,6 +293,9 @@
 	Remove background	背景を削除
 	Protect using password…	パスワードで保護…
 	Remove security	セキュリティを解除
+	Remove security without password	パスワードなしでセキュリティを解除
+	Remove restrictions without password	パスワードなしで制限を解除
+	Remove restrictions	制限を解除
 	Security properties…	セキュリティのプロパティ…
 	Organize pages	ページを整理
 	New bookmark	しおりを追加
@@ -2435,6 +2438,7 @@ animation effects	Off	オフ
 	Pages selected	選択したページ
 	Page properties	ページのプロパティ
 	Activate PdfCraft	PdfCraft をアクティベート
+	Cannot read a hardware identifier on this machine; activation is not possible.	このマシンのハードウェア識別子を読み取れないため、ライセンス認証ができません。
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	アクティベーションは無料です。このインストールの存在を作者に知らせるだけです。コードは、あなたが送信しない限りこのマシンから出ません。
 	Your machine code — send it to the author:	あなたのマシンコード — 作者に送ってください：
 	Paste the activation code you received:	受け取ったアクティベーションコードを貼り付けてください：

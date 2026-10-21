@@ -215,7 +215,7 @@ status = "shipped"
 commands = []
 tools = []
 evidence = ["crates/ui-egui/tests/editing.rs::restricted_documents_show_a_notice_and_block_page_changes", "crates/crypt/src/tests.rs::permission_bits_follow_table_22", "crates/crypt/src/tests.rs::perms_limits_what_an_edited_p_grants", "crates/engine/src/tests.rs::combining_protected_files_is_refused_clearly"]
-notes = ""
+notes = "enforced by default; the explicit protect.force_remove / doc_unprotect force (see protect.remove-security) is the one opt-in exception, and it changes security rather than breaking it"
 
 [[feature]]
 id = "core.crypt-filters"
@@ -5462,10 +5462,10 @@ area = "G"
 tier = "P0"
 milestone = "M8"
 status = "shipped"
-commands = ["protect.remove"]
+commands = ["protect.remove", "protect.force_remove"]
 tools = ["doc_unprotect"]
-evidence = ["crates/engine/src/tests.rs::protect_with_an_open_password_then_save_reopen_and_undo", "crates/automation/tests/automation.rs::protecting_through_tools"]
-notes = "needs the permissions password (or none set)"
+evidence = ["crates/engine/src/tests.rs::protect_with_an_open_password_then_save_reopen_and_undo", "crates/automation/tests/automation.rs::protecting_through_tools", "crates/engine/src/tests.rs::remove_restrictions_without_the_permissions_password", "crates/ui-egui/tests/editing.rs::remove_restrictions_without_the_password_asks_for_nothing"]
+notes = "needs the permissions password (or none set). This build goes beyond Acrobat with protect.force_remove / doc_unprotect force: a document opened without its permissions password (empty user password) drops its restrictions without them — the file is open and decrypted either way, so only /Encrypt goes"
 
 [[feature]]
 id = "protect.certificate-encryption"

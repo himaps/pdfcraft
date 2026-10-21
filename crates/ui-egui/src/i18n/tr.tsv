@@ -251,6 +251,9 @@
 	Remove background	Arka planı kaldır
 	Protect using password…	Parolayla koru…
 	Remove security	Güvenliği kaldır
+	Remove security without password	Şifre olmadan güvenliği kaldır
+	Remove restrictions without password	Şifre olmadan kısıtlamaları kaldır
+	Remove restrictions	Kısıtlamaları kaldır
 	Security properties…	Güvenlik özellikleri…
 	Organize pages	Sayfaları düzenle
 	New bookmark	Yeni yer imi
@@ -2431,6 +2434,7 @@ animation effects	Off	Kapalı
 	Pages selected	Seçilen sayfalar
 	Page properties	Sayfa özellikleri
 	Activate PdfCraft	PdfCraft'i etkinleştir
+	Cannot read a hardware identifier on this machine; activation is not possible.	Bu makinenin donanım tanımlayıcısı okunamadı; etkinleştirme mümkün değil.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Etkinleştirme ücretsizdir: yalnızca bu kurulumun var olduğunu yazarına bildirir. Kodu siz gönderene kadar bu makinede kalır.
 	Your machine code — send it to the author:	Makine kodunuz — yazara gönderin:
 	Paste the activation code you received:	Aldığınız etkinleştirme kodunu yapıştırın:

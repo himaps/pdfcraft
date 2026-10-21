@@ -266,6 +266,9 @@
 	Remove background	Retirer l'arrière-plan
 	Protect using password…	Protéger par mot de passe…
 	Remove security	Retirer la protection
+	Remove security without password	Supprimer la sécurité sans mot de passe
+	Remove restrictions without password	Supprimer les restrictions sans mot de passe
+	Remove restrictions	Supprimer les restrictions
 	Security properties…	Propriétés de protection…
 	Organize pages	Organiser les pages
 	New bookmark	Nouveau signet
@@ -2435,6 +2438,7 @@ animation effects	Off	Désactivés
 	Pages selected	Pages sélectionnées
 	Page properties	Propriétés de la page
 	Activate PdfCraft	Activer PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	Impossible de lire l’identifiant matériel de cette machine ; l’activation n’est pas possible.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	L'activation est gratuite : elle indique seulement à l'auteur que cette installation existe. Le code reste sur cette machine tant que vous ne l'envoyez pas vous-même.
 	Your machine code — send it to the author:	Votre code machine — envoyez-le à l'auteur :
 	Paste the activation code you received:	Collez le code d'activation que vous avez reçu :

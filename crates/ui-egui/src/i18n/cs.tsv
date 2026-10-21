@@ -78,6 +78,9 @@
 	Export all images…	Exportovat všechny obrázky…
 	Protect using password…	Chránit heslem…
 	Remove security	Odebrat zabezpečení
+	Remove security without password	Odebrat zabezpečení bez hesla
+	Remove restrictions without password	Odebrat omezení bez hesla
+	Remove restrictions	Odebrat omezení
 	Security properties…	Vlastnosti zabezpečení…
 	Undo	Zpět
 	Redo	Znovu
@@ -2509,6 +2512,7 @@ animation effects	Off	Vypnuto
 	Pages selected	Vybrané stránky
 	Page properties	Vlastnosti stránky
 	Activate PdfCraft	Aktivovat PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	Nelze přečíst hardwarový identifikátor tohoto počítače; aktivace není možná.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Aktivace je zdarma: jen dává autorovi vědět, že tato instalace existuje. Kód zůstává v tomto počítači, dokud ho sami neodešlete.
 	Your machine code — send it to the author:	Kód vašeho počítače — pošlete jej autorovi:
 	Paste the activation code you received:	Vložte přijatý aktivační kód:

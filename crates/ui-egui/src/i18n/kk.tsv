@@ -254,6 +254,9 @@
 	Remove background	Фонды алып тастау
 	Protect using password…	Құпиясөз арқылы қорғау…
 	Remove security	Қорғанысты алып тастау
+	Remove security without password	Парольсіз қауіпсіздікті алып тастау
+	Remove restrictions without password	Парольсіз шектеулерді алып тастау
+	Remove restrictions	Шектеулерді алып тастау
 	Security properties…	Қорғаныс сипаттары…
 	Organize pages	Беттерді ұйымдастыру
 	New bookmark	Жаңа бетбелгі
@@ -2433,6 +2436,7 @@ animation effects	Off	Өшірулі
 	Pages selected	Таңдалған беттер
 	Page properties	Бет қасиеттері
 	Activate PdfCraft	PdfCraft белсендіру
+	Cannot read a hardware identifier on this machine; activation is not possible.	Бұл компьютердің аппараттық идентификаторын оқу мүмкін болмады; белсендіру мүмкін емес.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Белсендіру тегін: ол авторға бұл орнату бар екенін ғана хабарлайды. Код сіз өзіңіз жібергенше осы машинада қалады.
 	Your machine code — send it to the author:	Сіздің машина кодыңыз — авторға жіберіңіз:
 	Paste the activation code you received:	Алған белсендіру кодын қойыңыз:

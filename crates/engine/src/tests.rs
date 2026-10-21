@@ -1219,7 +1219,7 @@ fn the_permissions_password_unlocks_an_open_document() {
     let id = s.open("r.pdf", None, bytes, None).unwrap();
     s.apply(id, Edit::SetInfo { key: "Title".into(), value: "Before".into() }).unwrap();
     assert!(!s.get(id).unwrap().allows_security_change());
-    assert!(matches!(s.apply(id, Edit::RemoveProtection), Err(EditError::NotPermitted(_))));
+    assert!(matches!(s.apply(id, Edit::RemoveProtection { force: false }), Err(EditError::NotPermitted(_))));
     for wrong in ["", "nope"] {
         assert_eq!(s.unlock(id, wrong), Err(EditError::WrongPassword), "{wrong:?}");
     }
@@ -1238,9 +1238,26 @@ fn the_permissions_password_unlocks_an_open_document() {
     let saved = s.save_bytes(id).unwrap();
     s.mark_saved(id, saved, None).unwrap();
     assert!(s.get(id).unwrap().allows_security_change(), "after saving");
-    s.apply(id, Edit::RemoveProtection).unwrap();
+    s.apply(id, Edit::RemoveProtection { force: false }).unwrap();
     let plain = s.save_bytes(id).unwrap();
     assert!(pdfcraft_cos::Document::open(plain).unwrap().security().is_none(), "security removed");
+}
+
+#[test]
+fn remove_restrictions_without_the_permissions_password() {
+    // This build's addition, beyond Acrobat (`force`): a document opened without its
+    // permissions password (its user password is empty) drops the restrictions without them.
+    // The file is open either way — its contents were already decrypted — so only /Encrypt goes.
+    let bytes = protected("", "owner", 0b1100);
+    let mut s = Session::new();
+    let id = s.open("r.pdf", None, bytes, None).unwrap();
+    assert!(!s.get(id).unwrap().allows_security_change());
+    s.apply(id, Edit::RemoveProtection { force: true }).unwrap();
+    assert_eq!(s.get(id).unwrap().can_undo(), Some("Remove restrictions"));
+    let plain = s.save_bytes(id).unwrap();
+    let doc = pdfcraft_cos::Document::open(plain).unwrap();
+    assert!(doc.security().is_none() && !doc.trailer().contains(b"Encrypt"), "restrictions gone with the encryption");
+    assert_eq!(pdfcraft_model::pages(&doc).len(), 2, "the document itself is untouched");
 }
 
 #[test]
@@ -1253,7 +1270,7 @@ fn remove_security_from_a_file_with_its_encrypt_dictionary_in_the_trailer() {
     let bytes = Arc::new(pdfcraft_cos::write_full(&doc, &Default::default()).unwrap());
     let mut s = Session::new();
     let id = s.open("m.pdf", None, bytes, Some("owner")).unwrap();
-    s.apply(id, Edit::RemoveProtection).unwrap();
+    s.apply(id, Edit::RemoveProtection { force: false }).unwrap();
     assert!(!s.get(id).unwrap().info.encrypted);
     let plain = s.save_bytes(id).unwrap();
     assert!(pdfcraft_cos::Document::open(plain).unwrap().security().is_none(), "security removed");
@@ -1591,7 +1608,7 @@ fn protect_with_an_open_password_then_save_reopen_and_undo() {
     assert_eq!(s2.get(id2).unwrap().info.pages[0].rotation, 90);
     // Nothing is restricted without a permissions password: the opener may remove security.
     assert!(s2.get(id2).unwrap().allows_security_change());
-    s2.apply(id2, Edit::RemoveProtection).unwrap();
+    s2.apply(id2, Edit::RemoveProtection { force: false }).unwrap();
     let plain = s2.save_bytes(id2).unwrap();
     assert!(pdfcraft_cos::Document::open(plain).is_ok());
 }
@@ -1612,7 +1629,7 @@ fn permissions_password_restricts_others_but_not_this_session() {
     assert!(perm.print() && !perm.print_high_quality() && perm.annotate() && perm.fill_forms() && !perm.copy() && !perm.modify());
     assert!(perm.extract_for_accessibility());
     assert!(!s2.get(id2).unwrap().allows_security_change());
-    assert_eq!(s2.apply(id2, Edit::RemoveProtection), Err(EditError::NotPermitted("changing security")));
+    assert_eq!(s2.apply(id2, Edit::RemoveProtection { force: false }), Err(EditError::NotPermitted("changing security")));
     assert!(s2.get(id2).unwrap().allows_annotation(), "commenting was allowed");
     // The owner password lifts everything.
     let id3 = s2.open("r.pdf", None, saved, Some("boss")).unwrap();

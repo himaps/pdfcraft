@@ -292,6 +292,7 @@ pub static TOOL_GROUPS: &[ToolGroup] = &[
                     item("Encrypt with certificate", "file-lock-2", "protect.certificate", Planned("M8")),
                     item("Security properties", "shield-check", "protect.properties", Ready),
                     item("Remove security", "lock-open", "protect.remove", Ready),
+                    item("Remove security without password", "lock-open", "protect.force_remove", Ready),
                 ],
             },
         ],

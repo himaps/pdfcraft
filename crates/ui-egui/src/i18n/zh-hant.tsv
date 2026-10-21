@@ -1766,6 +1766,9 @@
 	Export all images…	匯出所有圖片…
 	Protect using password…	使用密碼保護…
 	Remove security	移除安全性設定
+	Remove security without password	強制解除安全性設定
+	Remove restrictions without password	強制解除安全性設定
+	Remove restrictions	強制解除安全性設定
 	Security properties…	安全性內容…
 	Organize pages	整理頁面
 	New bookmark	新增書籤
@@ -2385,6 +2388,7 @@ animation effects	Off	關
 	Pages selected	選取的頁面
 	Page properties	頁面屬性
 	Activate PdfCraft	啟用 PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	無法讀取此機器的硬體識別碼；無法啟用。
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	啟用完全免費：只是讓作者知道有這份安裝。詞語碼只保存在本機，是否寄出由你自己決定。
 	Your machine code — send it to the author:	你的機器碼——請寄給作者：
 	Paste the activation code you received:	貼上你收到的啟用碼：

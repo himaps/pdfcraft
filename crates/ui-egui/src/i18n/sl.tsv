@@ -1459,6 +1459,9 @@
 	Remove redaction marks	Odstrani oznake za počrnitev
 	Remove saved {what}	Odstrani shranjeno: {what}
 	Remove security	Odstrani zaščito
+	Remove security without password	Odstrani varnost brez gesla
+	Remove restrictions without password	Odstrani omejitve brez gesla
+	Remove restrictions	Odstrani omejitve
 	Remove unreferenced named destinations	Odstrani nereferencirane poimenovane cilje
 	Remove unused objects and merge identical ones	Odstrani neuporabljene objekte in združi enake
 	Remove watermark	Odstrani vodni žig
@@ -2440,6 +2443,7 @@ animation effects	Off	Izklopljeni
 	Pages selected	Izbrane strani
 	Page properties	Lastnosti strani
 	Activate PdfCraft	Aktiviraj PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	Strojnega identifikatorja tega računalnika ni mogoče prebrati; aktiviranje ni mogoče.
 	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	Aktivacija je brezplačna: le obvesti avtorja, da ta namestitev obstaja. Koda ostane v tem računalniku, dokler je sami ne pošljete.
 	Your machine code — send it to the author:	Koda vašega računalnika — pošljite jo avtorju:
 	Paste the activation code you received:	Prilepite prejeti aktivacijsko kodo:

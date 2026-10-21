@@ -11,8 +11,6 @@ const INFO_KEYS: [&str; 4] = ["Title", "Author", "Subject", "Keywords"];
 
 pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
     dialogs(app, ctx);
-    // Above the rest: the startup activation ask (only while the installation is not activated).
-    crate::activation_ui::show(app, ctx);
     // Last, so it sits above Document Properties when Security's Unlock… asked for it.
     unlock(app, ctx);
 }
@@ -285,7 +283,8 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
                                         tl!("User password").to_string()
                                     },
                                 );
-                                // A restricted document asks for its permissions password first.
+                                // A restricted document asks for its permissions password first —
+                                // or drops the restrictions without it (this build, beyond Acrobat).
                                 if doc.allows_security_change() || doc.can_unlock() {
                                     ui.horizontal(|ui| {
                                         if doc.can_unlock() && ui.button(tl!("Unlock…")).clicked() {
@@ -296,6 +295,9 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
                                         }
                                         if ui.button(tl!("Remove security")).clicked() {
                                             link_command = Some("protect.remove");
+                                        }
+                                        if doc.can_unlock() && ui.button(tl!("Remove restrictions without password")).clicked() {
+                                            link_command = Some("protect.force_remove");
                                         }
                                     });
                                 }

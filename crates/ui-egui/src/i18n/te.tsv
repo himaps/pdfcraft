@@ -270,6 +270,9 @@ comment menu	Edit	సవరించు
 	Remove background	నేపథ్యాన్ని తీసివేయి
 	Protect using password…	పాస్‌వర్డ్‌తో రక్షించు…
 	Remove security	భద్రతను తీసివేయి
+	Remove security without password	పాస్‌వర్డ్ లేకుండా భద్రతను తీసివేయి
+	Remove restrictions without password	పాస్‌వర్డ్ లేకుండా పరిమితులను తీసివేయి
+	Remove restrictions	పరిమితులను తీసివేయి
 	Security properties…	భద్రతా లక్షణాలు…
 	Organize pages	పేజీలను నిర్వహించు
 	New bookmark	కొత్త బుక్‌మార్క్
@@ -2343,3 +2346,4 @@ animation effects	Off	ఆఫ్
 	Make properties default	లక్షణాలను డిఫాల్ట్‌గా చేయి
 	Pages selected	ఎంచుకున్న పేజీలు
 	Page properties	పేజీ లక్షణాలు
+	Cannot read a hardware identifier on this machine; activation is not possible.	ఈ యంత్రం యొక్క హార్డువేర్ గుర్తింపును చదవడం సాధ్యం కాలేదు; యాక్టివేషన్ సాధ్యం కాదు.
