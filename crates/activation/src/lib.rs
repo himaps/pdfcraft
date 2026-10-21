@@ -148,12 +148,14 @@ pub fn machine_code(machine_id: &str) -> Code {
 }
 
 /// The code the author answers with: same length as `machine`, derived from the machine code
-/// the user sent through the response key — so the author, who never sees the machine
-/// identifier, can compute it from the words alone.
+/// the user sent through the response key and the [`APP_ID`] — so the author, who never sees
+/// the machine identifier, can compute it from the words alone; and a code computed for one
+/// Crafting App cannot activate another.
 pub fn activation_response(machine: &Code) -> Code {
     use sha2::{Digest, Sha256};
     let mut h = Sha256::new();
     h.update(KEY);
+    h.update(APP_ID.as_bytes());
     h.update(&machine.indices);
     let r = h.finalize();
     Code { indices: (0..machine.len()).map(|i| r[i] & 63).collect() }
@@ -164,21 +166,33 @@ pub fn activation_code(machine_id: &str) -> Code {
     activation_response(&machine_code(machine_id))
 }
 
-/// Where the activation is stored: beside the installed files (the install directory) —
-/// `<exe>/../share/pdfcraft/activation.txt` on Linux (FHS `bin/` → `share/`, like the OCR
-/// models), `<exe>/pdfcraft-activation.txt` on Windows. `None` without an executable path.
+/// The software identifier. Each Crafting App has its own (`pdfcraft`, `photocraft`, …), so an
+/// activation code from one app cannot activate another: the APP_ID is mixed into the response
+/// hash alongside the machine code indices.
+pub const APP_ID: &str = "pdfcraft";
+
+/// Where the activation is stored: a hidden Markdown file in the install directory —
+/// `<exe>/../share/pdfcraft/.license.md` on Linux (FHS `bin/` → `share/`, like the OCR models),
+/// `<exe>/.license.md` on Windows. `None` without an executable path.
 pub fn storage_path() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let dir = exe.parent()?;
-    Some(if cfg!(target_os = "linux") { dir.join("../share/pdfcraft/activation.txt") } else { dir.join("pdfcraft-activation.txt") })
+    Some(if cfg!(target_os = "linux") { dir.join("../share/pdfcraft/.license.md") } else { dir.join(".license.md") })
 }
 
-/// Whether `path` holds the activation code of this machine.
+/// Whether `path` holds the activation code of this machine. The `.license.md` file has the
+/// software ID on its first line and the activation code on its second; the software ID must
+/// match [`APP_ID`] so a license from one Crafting App cannot activate another.
 pub fn status_at(path: &PathBuf, machine_id: &str) -> Result<Code, ActivationError> {
-    let stored =
-        parse(&std::fs::read_to_string(path).map_err(|e| {
-            if e.kind() == std::io::ErrorKind::NotFound { ActivationError::NotActivated } else { ActivationError::Io(e.to_string()) }
-        })?)?;
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| if e.kind() == std::io::ErrorKind::NotFound { ActivationError::NotActivated } else { ActivationError::Io(e.to_string()) })?;
+    let mut lines = content.lines();
+    let software = lines.next().ok_or(ActivationError::NotActivated)?.strip_prefix("# ").ok_or(ActivationError::Mismatch)?;
+    if software != APP_ID {
+        return Err(ActivationError::Mismatch);
+    }
+    let code_line = lines.next().ok_or(ActivationError::NotActivated)?;
+    let stored = parse(code_line.strip_prefix("- 激活码: ").unwrap_or(code_line.trim()))?;
     let expected = activation_code(machine_id);
     if stored.len() != expected.len() {
         return Err(ActivationError::WrongLength { expected: expected.len(), got: stored.len() });
@@ -197,8 +211,8 @@ pub fn status(machine_id: &str) -> Result<Code, ActivationError> {
     }
 }
 
-/// Verifies the typed activation code against this machine and stores it. `at` is
-/// [`storage_path`]; passing it in keeps this testable.
+/// Verifies the typed activation code against this machine and stores it as a `.license.md`
+/// recording the activation details. `at` is [`storage_path`]; passing it in keeps this testable.
 pub fn activate_at(at: &PathBuf, machine_id: &str, typed: &str) -> Result<Code, ActivationError> {
     let typed = parse(typed)?;
     let expected = activation_code(machine_id);
@@ -208,7 +222,8 @@ pub fn activate_at(at: &PathBuf, machine_id: &str, typed: &str) -> Result<Code, 
     if typed.indices != expected.indices {
         return Err(ActivationError::Mismatch);
     }
-    std::fs::write(at, typed.render()).map_err(|e| ActivationError::Write(at.display().to_string(), e.to_string()))?;
+    let content = format!("# {}\n- 激活码: {}\n", APP_ID, typed.render());
+    std::fs::write(at, content).map_err(|e| ActivationError::Write(at.display().to_string(), e.to_string()))?;
     Ok(typed)
 }
 
@@ -257,9 +272,9 @@ mod tests {
     #[test]
     fn known_machine_ids_have_known_codes() {
         let cases: [(&str, usize, &[u8], &[u8]); 3] = [
-            ("test-machine-001", 6, &[56, 28, 30, 2, 3, 23], &[61, 40, 4, 55, 45, 46]),
-            ("KYLIN-V20-Desktop", 4, &[31, 28, 47, 16], &[19, 28, 49, 21]),
-            ("linux-abc123", 5, &[8, 0, 5, 52, 51], &[32, 36, 4, 21, 18]),
+            ("test-machine-001", 6, &[56, 28, 30, 2, 3, 23], &[57, 16, 40, 55, 14, 33]),
+            ("KYLIN-V20-Desktop", 4, &[31, 28, 47, 16], &[61, 29, 17, 27]),
+            ("linux-abc123", 5, &[8, 0, 5, 52, 51], &[34, 45, 12, 6, 42]),
         ];
         for (id, n, user, act) in cases {
             let machine = machine_code(id);
@@ -316,9 +331,9 @@ mod tests {
     fn storage_lands_beside_the_installed_files() {
         let p = storage_path().unwrap_or_default();
         if cfg!(target_os = "linux") {
-            assert!(p.to_string_lossy().contains("share/pdfcraft/activation.txt"), "{p:?}");
+            assert!(p.to_string_lossy().contains("share/pdfcraft/.license.md"), "{p:?}");
         } else if cfg!(target_os = "windows") {
-            assert_eq!(p.file_name().map(|s| s.to_string_lossy().to_string()).as_deref(), Some("pdfcraft-activation.txt"));
+            assert_eq!(p.file_name().map(|s| s.to_string_lossy().to_string()).as_deref(), Some(".license.md"));
         }
     }
 }
