@@ -245,11 +245,14 @@ fn version_line(stdout: &str, stderr: &str) -> Option<String> {
     first(stdout).or_else(|| first(stderr))
 }
 
-/// The Tesseract program. Build one (via [`TesseractCli::find`] for the PATH copy, or
-/// [`TesseractCli::new`] for a user-configured path) and reuse it: `--list-langs` runs at most
-/// once.
+/// The Tesseract program. Build one (via [`TesseractCli::find`] for the installed or
+/// packaged copy, or [`TesseractCli::new`] for a user-configured path) and reuse it:
+/// `--list-langs` runs at most once.
 pub struct TesseractCli {
     program: PathBuf,
+    /// The trained-data directory passed as `--tessdata-dir` for the packaged copy; `None`
+    /// lets the program use its own compiled-in location (a system-installed tesseract).
+    tessdata: Option<PathBuf>,
     /// The timeout and the output cap are fields so tests can shorten them.
     timeout: Duration,
     max_output: u64,
@@ -261,7 +264,7 @@ pub struct TesseractCli {
 impl TesseractCli {
     /// The program at `path` (a user preference; never taken from document data).
     pub fn new(program: PathBuf) -> TesseractCli {
-        TesseractCli { program, timeout: TIMEOUT, max_output: MAX_OUTPUT, probed: AtomicU8::new(0), langs: Mutex::new(Vec::new()) }
+        TesseractCli { program, tessdata: None, timeout: TIMEOUT, max_output: MAX_OUTPUT, probed: AtomicU8::new(0), langs: Mutex::new(Vec::new()) }
     }
 
     /// The program this engine runs (`ocr_status` names it).
@@ -273,19 +276,37 @@ impl TesseractCli {
     /// to an existing, executable file is accepted (a directory, a missing file or a relative
     /// path is unavailable, never a panic), and it must answer `--list-langs`.
     pub fn at(program: PathBuf) -> Option<TesseractCli> {
+        TesseractCli::at_with_data(program, None)
+    }
+
+    /// [`TesseractCli::at`] with a trained-data directory passed to the program as
+    /// `--tessdata-dir`: the packaged copy carries its own data beside its executable, so it
+    /// must not depend on a compiled-in location from wherever it was built.
+    pub fn at_with_data(program: PathBuf, tessdata: Option<PathBuf>) -> Option<TesseractCli> {
         if !program_is_executable(&program) {
             return None;
         }
-        let t = TesseractCli::new(program);
+        let t = TesseractCli { tessdata, ..TesseractCli::new(program) };
         let langs = t.list_langs().ok()?;
         *t.langs.lock().unwrap_or_else(|e| e.into_inner()) = langs;
         t.probed.store(1, Ordering::Relaxed);
         Some(t)
     }
 
+    /// The copy the application package carries beside its executable (`tesseract\tesseract.exe`
+    /// with `tessdata\` next to it), when both exist. Part of the install, so it is trusted like
+    /// the application itself; an explicit `PDFCRAFT_TESSERACT` still decides before it.
+    fn bundled() -> Option<(PathBuf, PathBuf)> {
+        let dir = std::env::current_exe().ok()?.parent()?.join("tesseract");
+        let program = dir.join("tesseract.exe");
+        let tessdata = dir.join("tessdata");
+        (program.is_file() && tessdata.is_dir()).then_some((program, tessdata))
+    }
+
     /// The program this machine offers, if it answers `--list-langs`: the user-configured
-    /// location ([`configured_path`] / `$PDFCRAFT_TESSERACT`) when valid, else the first
-    /// absolute PATH entry that holds an executable `tesseract`.
+    /// location ([`configured_path`] / `$PDFCRAFT_TESSERACT`) when valid, else the copy the
+    /// Windows package carries beside the executable ([`bundled`], which brings its own
+    /// trained data), else the first absolute PATH entry that holds an executable `tesseract`.
     ///
     /// # The PATH-lookup risk
     ///
@@ -297,9 +318,15 @@ impl TesseractCli {
     /// executable file) before any process starts.
     ///
     /// A `PDFCRAFT_TESSERACT` that is set but invalid fails closed: it is never replaced by
-    /// the PATH search.
+    /// the bundled copy or the PATH search.
     pub fn find() -> Option<TesseractCli> {
-        TesseractCli::at(locate(std::env::var_os("PDFCRAFT_TESSERACT"), path_search)?)
+        if let Some(program) = std::env::var_os("PDFCRAFT_TESSERACT") {
+            return TesseractCli::at(PathBuf::from(program));
+        }
+        if let Some((program, tessdata)) = TesseractCli::bundled() {
+            return TesseractCli::at_with_data(program, Some(tessdata));
+        }
+        TesseractCli::at(locate(None, path_search)?)
     }
 
     /// Run `tesseract --list-langs` and parse it; also decides [`TesseractCli::available`].

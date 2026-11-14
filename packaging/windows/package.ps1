@@ -122,6 +122,49 @@ if (-not (Test-Path (Join-Path $Models 'ATTRIBUTION.txt')) -or -not (Get-ChildIt
   throw "no OCR models in $Models after cargo xtask models"
 }
 
+# ---- Chinese OCR: tesseract beside the binaries ------------------------------------------------
+# Chinese and other-language OCR runs the system's tesseract (crates/ocr/src/tesseract.rs
+# resolves $PDFCRAFT_TESSERACT, then the PATH). Windows has no system tesseract, so the package
+# carries one: the winget UB-Mannheim build (Apache-2.0) with the Simplified Chinese data added
+# from the pinned tessdata_best tag. The MSI puts it on the system PATH and points
+# TESSDATA_PREFIX at it; the portable zip carries the same folder beside the executable.
+$Tesseract = Join-Path $Stage 'tesseract'
+New-Item -ItemType Directory -Force -Path $Tesseract | Out-Null
+try {
+  $TessInstalled = 'C:\Program Files\Tesseract-OCR'
+  if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) {
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+      Invoke-Native 'install tesseract-ocr (winget, UB-Mannheim build)' {
+        winget install --id UB-Mannheim.TesseractOCR --scope machine --exact --silent --disable-interactivity --accept-package-agreements --accept-source-agreements
+      }
+    } else {
+      Write-Output 'winget is not available on this image; falling back to chocolatey'
+    }
+  }
+  if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) {
+    Invoke-Native 'install tesseract-ocr (chocolatey)' { choco install tesseract -y --no-progress }
+  }
+  if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) {
+    # A package manager put it somewhere else: find it before giving up.
+    $found = Get-ChildItem 'C:\Program Files', "$env:LOCALAPPDATA\Programs" -Filter tesseract.exe -Recurse -Depth 3 -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($found) { $TessInstalled = $found.DirectoryName }
+  }
+  if (-not (Test-Path (Join-Path $TessInstalled 'tesseract.exe'))) { throw "tesseract.exe not found after winget/choco (looked in $TessInstalled and the common program folders)" }
+  Write-Output "tesseract from: $TessInstalled"
+  Copy-Item -Recurse -Force (Join-Path $TessInstalled '*') $Tesseract
+  # The installer does not carry Simplified Chinese: take the pinned tessdata_best copy.
+  Invoke-Native 'chi_sim.traineddata (tessdata_best 4.1.0)' {
+    Invoke-WebRequest 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/chi_sim.traineddata' -OutFile (Join-Path $Tesseract 'tessdata\chi_sim.traineddata')
+  }
+  if (-not (Test-Path (Join-Path $Tesseract 'tessdata\chi_sim.traineddata'))) { throw 'chi_sim.traineddata was not downloaded' }
+  # Apache-2.0 redistribution: carry the licence beside the program (the ATTRIBUTION entries
+  # name the winget source and the pinned traineddata commit).
+  Copy-Item (Join-Path $Root 'LICENSE-APACHE') (Join-Path $Tesseract 'LICENSE-tesseract-Apache-2.0.txt')
+} catch {
+  Write-Output "::error title=tesseract staging::$($_.Exception.Message)"
+  throw
+}
+
 # ---- font notices for the MSI ------------------------------------------------------------------
 # The portable ZIP already carries these notices; stage the complete files before MSI creation too.
 $Docs = Join-Path $Stage 'font-licences'
@@ -144,7 +187,7 @@ $Msi = Join-Path $Dist "pdfcraft-$Version-windows-$Arch.msi"
 Invoke-Native 'wix build' {
   wix build (Join-Path $PSScriptRoot 'pdfcraft.wxs') -arch $Arch `
     (Join-Path $PSScriptRoot 'installer-ui.wxs') `
-    -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "ModelsDir=$Models" -d "IconPath=$(Join-Path $Root 'assets\app-icon\pdfcraft.ico')" `
+    -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "ModelsDir=$Models" -d "TesseractDir=$Tesseract" -d "IconPath=$(Join-Path $Root 'assets\app-icon\pdfcraft.ico')" `
     -d "DocsDir=$Docs" -d "HasCraftFontLicences=$HasCraftFontLicences" `
     -o $Msi
 }
@@ -169,6 +212,21 @@ foreach ($f in 'NOTICE', 'LICENSE-document.txt') {
   Copy-Item (Join-Path $Stage $f) $Portable
 }
 Copy-Item -Recurse $Models (Join-Path $Portable 'models')
+# The portable zip cannot write the system PATH and TESSDATA_PREFIX the MSI sets: instead a
+# README-OCR.txt names the two commands that register the bundled copy for the current machine
+# (an installed app needs no step — its MSI sets both).
+Copy-Item -Recurse $Tesseract (Join-Path $Portable 'tesseract')
+$OcrReadme = Join-Path $Portable 'README-OCR.txt'
+@'
+Chinese (and other-language) OCR uses the tesseract copy bundled in this
+folder. The portable zip cannot register it system-wide; to register it,
+run these two commands once from the extracted folder (as administrator):
+
+  setx PATH "%PATH%;%CD%\tesseract"
+  setx TESSDATA_PREFIX "%CD%\tesseract\tessdata"
+
+An installed (MSI) copy does this automatically.
+'@ | Out-File -FilePath $OcrReadme -Encoding utf8
 foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE') {
   $p = Join-Path $Root $f
   if (Test-Path $p) { Copy-Item $p $Portable }

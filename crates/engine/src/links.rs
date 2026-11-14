@@ -24,9 +24,7 @@ pub struct Link {
 
 /// The one link this build shows (GitHub); the fork surfaces no Discord, web page or
 /// ArtCraft-website entry anywhere (brand licence: modified versions remove the brand).
-pub const LINKS: &[Link] = &[
-    Link { command: "help.github", label: "PdfCraft on GitHub", url: GITHUB, icon: "code-xml" },
-];
+pub const LINKS: &[Link] = &[Link { command: "help.github", label: "PdfCraft on GitHub", url: GITHUB, icon: "code-xml" }];
 
 pub fn for_command(id: &str) -> Option<&'static Link> {
     LINKS.iter().find(|l| l.command == id)

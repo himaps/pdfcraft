@@ -37,6 +37,10 @@ overrides:
       - libvulkan1 | libegl1
     recommends:
       - cups-client
+      - tesseract-ocr
+      - tesseract-ocr-chi-sim
+      - tesseract-ocr-eng
+      - tesseract-ocr-osd
       - libwayland-client0
       - libx11-6
       - libx11-xcb1

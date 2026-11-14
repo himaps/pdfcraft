@@ -69,6 +69,7 @@
       <Directory Id="CraftSuiteFolder" Name="ArtCraft">
         <Directory Id="INSTALLFOLDER" Name="PdfCraft">
         <Directory Id="ModelsFolder" Name="models" />
+        <Directory Id="TesseractFolder" Name="tesseract" />
       </Directory>
       </Directory>
     </StandardDirectory>
@@ -81,6 +82,7 @@
       <?endif?>
       <ComponentGroupRef Id="PdfcraftFiles" />
       <ComponentGroupRef Id="PdfcraftModels" />
+      <ComponentGroupRef Id="PdfcraftTesseract" />
     </Feature>
   <Property Id="CRAFT_OPTION_1_M" Secure="yes"><RegistrySearch Id="CRAFT_OPTION_1_MSearch" Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\PdfCraft.Edit" Type="raw" />
     </Property><SetProperty Id="EXISTINGPDFCONTEXTMENU" Action="CraftLoadOption1M" Value="[CRAFT_OPTION_1_M]" After="LaunchConditions" Sequence="both" Condition="ALLUSERS = 1" /><Property Id="CRAFT_OPTION_1_U" Secure="yes"><RegistrySearch Id="CRAFT_OPTION_1_USearch" Root="HKCU" Key="Software\Classes\SystemFileAssociations\.pdf\shell\PdfCraft.Edit" Type="raw" />
@@ -229,6 +231,22 @@
          component each, so new models ship without naming them here. -->
     <ComponentGroup Id="PdfcraftModels" Directory="ModelsFolder">
       <Files Include="$(var.ModelsDir)\*" />
+    </ComponentGroup>
+
+    <!-- Chinese and other-language OCR (crates/ocr/src/tesseract.rs resolves $PDFCRAFT_TESSERACT
+         and the PATH) runs the tesseract copy the package carries in tesseract\ beside
+         pdfcraft.exe (package.ps1 stages a winget-installed UB-Mannheim build, Apache-2.0, with
+         the Simplified Chinese data from the pinned tessdata_best tag). The environment component
+         puts that folder on the system PATH and points TESSDATA_PREFIX at its trained data, so
+         the engine's PATH resolution finds the program and its data with no extra install; both
+         entries are removed again on uninstall. -->
+    <ComponentGroup Id="PdfcraftTesseract" Directory="TesseractFolder">
+      <Component Id="PdfcraftTesseractEnv" Guid="8B4E4A16-93C2-4B7D-9A56-2E0F1C3D5A74">
+        <RegistryValue Root="HKLM" Key="Software\PdfCraft\Tesseract" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+        <Environment Id="TesseractPath" Name="PATH" Value="[TesseractFolder]" Part="last" Action="set" System="yes" Separator=";" />
+        <Environment Id="TessdataPrefix" Name="TESSDATA_PREFIX" Value="[TesseractFolder]tessdata" Part="all" Action="set" System="yes" />
+      </Component>
+      <Files Include="$(var.TesseractDir)\**" />
     </ComponentGroup>
   </Fragment>
 </Wix>
