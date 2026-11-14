@@ -242,7 +242,11 @@
          entries are removed again on uninstall. -->
     <ComponentGroup Id="PdfcraftTesseract" Directory="TesseractFolder">
       <Component Id="PdfcraftTesseractEnv" Guid="8B4E4A16-93C2-4B7D-9A56-2E0F1C3D5A74">
-        <RegistryValue Root="HKLM" Key="Software\PdfCraft\Tesseract" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+        <!-- HKMU: the registration follows the selected install context, like every other
+             registry row in this package (the dual-scope installer contract forbids rows that
+             force HKLM or HKCU). MSI's WriteEnvironmentStrings action likewise writes the two
+             variables where the selected context says. -->
+        <RegistryValue Root="HKMU" Key="Software\PdfCraft\Tesseract" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
         <Environment Id="TesseractPath" Name="PATH" Value="[TesseractFolder]" Part="last" Action="set" System="yes" Separator=";" />
         <Environment Id="TessdataPrefix" Name="TESSDATA_PREFIX" Value="[TesseractFolder]tessdata" Part="all" Action="set" System="yes" />
       </Component>
