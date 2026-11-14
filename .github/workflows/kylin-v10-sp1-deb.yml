@@ -283,7 +283,25 @@ jobs:
           Add-Content $env:GITHUB_ENV "CRAFT_I18N_DIR=$env:RUNNER_TEMP\craft-i18n"
       - name: Build and package
         shell: pwsh
-        run: packaging/windows/package.ps1 -Arch ${{ matrix.arch }}
+        run: |
+          # Tee the output so a failure step can re-emit the tail as annotations (the only
+          # finding channel readable without credentials).
+          packaging/windows/package.ps1 -Arch ${{ matrix.arch }} 2>&1 | Tee-Object -FilePath windows-build.log
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Emit the build log tail as annotations on failure
+        if: failure()
+        shell: pwsh
+        run: |
+          $log = 'windows-build.log'
+          if (-not (Test-Path $log)) { exit 0 }
+          $tail = Get-Content $log -Tail 30
+          $total = $tail.Count
+          for ($i = 0; $i -lt $total; $i++) {
+            $fromEnd = $total - $i
+            $level = if ($fromEnd -le 10) { 'error' } elseif ($fromEnd -le 20) { 'warning' } else { 'notice' }
+            $line = ($tail[$i] -replace '\r','') | ForEach-Object { $_.Substring(0, [Math]::Min(300, $_.Length)) }
+            Write-Output "::${level} title=windows-build L${fromEnd}-from-end::$line"
+          }
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
