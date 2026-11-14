@@ -178,6 +178,12 @@ if [ -z "${TOP// /}" ]; then
   echo "error: could not map any linked library to a Debian package" >&2
   exit 1
 fi
+# Chinese and other-language OCR runs the system's tesseract (crates/ocr/src/tesseract.rs):
+# no ldd line names it, so its packages join the closure explicitly and their Depends pull in
+# the trained data. Bullseye's tesseract 4.1.1 matches focal/Kylin's.
+EXTRA="tesseract-ocr tesseract-ocr-chi-sim tesseract-ocr-eng tesseract-ocr-osd"
+echo "offline deps extra (external programs):$EXTRA"
+TOP="$TOP $EXTRA"
 echo "offline deps direct closure:$TOP"
 
 PKGS="$TOP"

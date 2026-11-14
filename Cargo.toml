@@ -38,7 +38,6 @@ craft-pdf = { git = "https://github.com/storytold/craft-libs", version = "0.1.0"
 craft-rtf = { git = "https://github.com/storytold/craft-libs", version = "0.1.0", rev = "e2dc681a3" }
 craft-csv = { git = "https://github.com/storytold/craft-libs", version = "0.1.0", rev = "e2dc681a3" }
 # internal
-=======
 pdfcraft-geom = { path = "crates/geom", version = "0.21.0" }
 pdfcraft-filters = { path = "crates/filters", version = "0.21.0" }
 pdfcraft-cos = { path = "crates/cos", version = "0.21.0" }

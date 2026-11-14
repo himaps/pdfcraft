@@ -106,14 +106,21 @@ jobs:
         # env.sh records the build SHA through git.
         run: git config --global --add safe.directory '*'
 
-      - name: Clone craft-fonts (pinned, same ref as release.yml)
+      - name: Clone craft-fonts and craft-i18n (pinned, same refs as release.yml)
         run: |
           set -e
           git init -q /tmp/craft-fonts
           git -C /tmp/craft-fonts remote add origin https://github.com/storytold/craft-fonts.git
-          git -C /tmp/craft-fonts fetch -q --depth 1 origin 3d9ab3a132ed0eff457e424226a435a901da30d3
+          git -C /tmp/craft-fonts fetch -q --depth 1 origin b076417b5880bd4154bd22f00695b1d28c6bea83
           git -C /tmp/craft-fonts checkout -q --detach FETCH_HEAD
           echo "CRAFT_FONTS_DIR=/tmp/craft-fonts" >> "$GITHUB_ENV"
+          # Interface catalogs: the commit craft-i18n.rev pins (upstream CI and releases read the same file).
+          I18N_REV="$(cat craft-i18n.rev)"
+          git init -q /tmp/craft-i18n
+          git -C /tmp/craft-i18n remote add origin https://github.com/storytold/craft-i18n.git
+          git -C /tmp/craft-i18n fetch -q --depth 1 origin "$I18N_REV"
+          git -C /tmp/craft-i18n checkout -q --detach FETCH_HEAD
+          echo "CRAFT_I18N_DIR=/tmp/craft-i18n" >> "$GITHUB_ENV"
 
       - name: Build and package
         run: |
@@ -260,14 +267,20 @@ jobs:
         shell: pwsh
         run: dotnet tool install --global wix --version 5.0.2
       - uses: actions/checkout@v4
-      - name: Clone craft-fonts (pinned, same ref as release.yml)
+      - name: Clone craft-fonts and craft-i18n (pinned, same refs as release.yml)
         shell: pwsh
         run: |
           git init -q "$env:RUNNER_TEMP\craft-fonts"
           git -C "$env:RUNNER_TEMP\craft-fonts" remote add origin https://github.com/storytold/craft-fonts.git
-          git -C "$env:RUNNER_TEMP\craft-fonts" fetch -q --depth 1 origin 3d9ab3a132ed0eff457e424226a435a901da30d3
+          git -C "$env:RUNNER_TEMP\craft-fonts" fetch -q --depth 1 origin b076417b5880bd4154bd22f00695b1d28c6bea83
           git -C "$env:RUNNER_TEMP\craft-fonts" checkout -q --detach FETCH_HEAD
           Add-Content $env:GITHUB_ENV "CRAFT_FONTS_DIR=$env:RUNNER_TEMP\craft-fonts"
+          $i18nRev = (Get-Content craft-i18n.rev -Raw).Trim()
+          git init -q "$env:RUNNER_TEMP\craft-i18n"
+          git -C "$env:RUNNER_TEMP\craft-i18n" remote add origin https://github.com/storytold/craft-i18n.git
+          git -C "$env:RUNNER_TEMP\craft-i18n" fetch -q --depth 1 origin $i18nRev
+          git -C "$env:RUNNER_TEMP\craft-i18n" checkout -q --detach FETCH_HEAD
+          Add-Content $env:GITHUB_ENV "CRAFT_I18N_DIR=$env:RUNNER_TEMP\craft-i18n"
       - name: Build and package
         shell: pwsh
         run: packaging/windows/package.ps1 -Arch ${{ matrix.arch }}

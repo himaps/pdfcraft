@@ -191,6 +191,7 @@ impl PdfCraftApp {
             system_title_bar: false,
             app_frame_shown: None,
             password_prompt: None,
+            activation: activation_ui::Dialog::new(),
             document_copy: None,
             unlock_prompt: None,
             full_screen: false,
@@ -323,7 +324,6 @@ impl PdfCraftApp {
             bookmark_rename: None,
             bookmark_clipboard: None,
             last_opened_url: None,
-            community_card_closed: false,
             pending_link: None,
             pending_full_screen: None,
             pending_window: None,
@@ -822,6 +822,10 @@ impl PdfCraftApp {
         // Fonts registered via set_fonts only take effect next frame; named families would panic now.
         if !self.fonts_ready {
             ctx.request_repaint();
+            return;
+        }
+        // Activation gate: the app does not run until a valid activation code is stored.
+        if !activation_ui::gate(self, ui) {
             return;
         }
         // Before any widget reads this frame's wheel input or draws.
