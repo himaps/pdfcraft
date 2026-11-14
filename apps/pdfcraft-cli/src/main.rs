@@ -53,6 +53,20 @@ macro_rules! mcp_usage {
     };
 }
 
+mod check;
+mod commands;
+mod options;
+mod run;
+mod ui;
+
+use check::{audit, check, check_one};
+use commands::{combine, edit, extract, info, render, split, text};
+use options::{OptionSpec, flag, validate_options};
+#[cfg(feature = "mcp")]
+use run::mcp;
+use run::{automation, print_output, run, tools};
+use ui::ui;
+
 /// The full usage, printed by `--help` (also after a command, e.g. `render --help`).
 const USAGE: &str = concat!(
     "\
@@ -85,7 +99,31 @@ help and feedback: https://discord.gg/artcraft"
 );
 
 fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    // Before anything uses aws-lc: an `OPENSSL_ia32cap` naming a CPU feature this processor lacks
+    // would stop it, so the CLI runs again without it (#2916, `pdfcraft_platform::crypto_env`).
+    if let Some(code) = pdfcraft_platform::crypto_env::run_without_cpu_override() {
+        std::process::exit(code);
+    }
+    // aws-lc detects the CPU's features here, where it used to before `main` (`init_crypto`).
+    pdfcraft_engine::sign::init_crypto();
+    // `std::env::args` panics on an argument that is not UTF-8 ("called `Result::unwrap()` on an
+    // `Err` value"), which a Latin-1 file name is, and it panics while collecting them: even
+    // `--help` ended that way. Such a name cannot be passed on either, since the paths here are
+    // `str`, so it is a usage error (photocraft#1108).
+    let mut args: Vec<String> = Vec::new();
+    for arg in std::env::args_os().skip(1) {
+        match arg.into_string() {
+            Ok(a) => args.push(a),
+            Err(bad) => {
+                let _ = writeln!(
+                    std::io::stderr().lock(),
+                    "pdfcraft-cli: `{}` is not valid UTF-8, so it cannot be used as an argument",
+                    bad.to_string_lossy()
+                );
+                return ExitCode::FAILURE;
+            }
+        }
+    }
     // `<command> --help` too; only right after the command, so a later `-h` (a value) still reaches it.
     let command = match args.get(1).map(String::as_str) {
         Some("--help" | "-h") => Some("--help"),
@@ -175,7 +213,7 @@ fn activation(args: &[String]) -> Result<(), CliError> {
     if text.trim().is_empty() {
         return Err("activation: pass the machine code words, e.g. activation 富强-立信-淳良-法治".into());
     }
-    let machine = pdfcraft_activation::parse(&text).map_err(|e| format!("activation: {e}"))?;
+    let machine = pdfcraft_activation::parse(&text).map_err(|e| format!("{e}"))?;
     let code = pdfcraft_activation::activation_response(&machine);
     stdout_line(format_args!("{}", code.render()))
 }
@@ -1123,3 +1161,5 @@ mod tests {
         assert!(control_file_problem(1000, 0o100644, 1000).unwrap_or_default().contains("mode 644"));
     }
 }
+=======
+>>>>>>> upstream/main

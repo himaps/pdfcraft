@@ -14,165 +14,198 @@
 
 pub mod actions;
 pub mod autotag;
+mod bookmarks;
 pub mod build_info;
 pub mod camera;
 pub mod camera_clean;
 pub mod camera_edges;
 pub mod catalog;
 pub mod commands;
+mod comments;
 pub mod compare;
 mod copy_image;
+pub use copy_image::{PagePicture, picture_at};
 pub mod dates;
+mod document;
+mod edit;
+mod error;
 pub mod export;
+pub mod field_table;
+mod fill_sign;
+pub mod find_replace;
+mod history;
 pub mod js;
+mod layers;
 pub mod links;
+mod live_scripts;
+pub mod model3d;
+mod object_clip;
 pub mod ocr;
+mod open;
+pub mod open_parameters;
 pub mod optimizer;
+mod page_filter;
+mod pictures;
 pub mod print_raster;
 pub mod printcheck;
+mod protection;
+mod rich_copy;
+pub mod scan_clean;
 mod scan_colours;
 mod scan_fields;
+mod session;
 pub mod signature_image;
 pub mod signature_scan;
+mod sources;
+pub mod spooler;
+mod stamp_preview;
+#[cfg(test)]
+mod test_hooks;
 pub mod text_fonts;
+pub mod text_links;
 mod text_preview;
+pub mod text_script;
+pub mod text_style_bookmarks;
 pub mod word_count;
 pub mod xfa;
+mod xfa_form;
 
-pub use signature_image::{ImageSignaturePreview, SignatureImage};
-pub use signature_scan::{PhotoRect, ScanError, SignaturePhoto, Turn};
-pub use text_preview::TextEditPreview;
-
-pub use pdfcraft_organize::{BoxSpec, FieldConflicts, PageBox, SplitBy, Transition, TransitionSpec, split_ranges};
-
-/// One file produced by a split: (1-based first page, last page, PDF bytes).
-pub use pdfcraft_organize::LabelStyle;
-pub use pdfcraft_organize::view::{InitialView, Layout as InitialLayout, Magnification, Navigation};
-
-pub use pdfcraft_cos::Algorithm;
-pub use pdfcraft_create::{CONVERTIBLE, CreateError, ImageResolution, SourceKind, decode_text, source_kind};
-pub use pdfcraft_edit::added::{text_rect as added_text_rect, text_width as added_text_width};
-pub use pdfcraft_edit::{
-    Added, AddedImage, AddedText, Align as TextAlign, Background, Content as AddedContent, Family as FontFamily, HeaderFooter, MarkKind, Watermark,
-};
-pub use pdfcraft_forms::{
-    BorderStyle, CheckStyle, Field as FormField, FieldAction, FieldChange, FieldFont, FieldKind as FormFieldKind, FieldProps, FieldValue,
-    Look as FieldLook, LookPatch as FieldLookPatch, NewField, TabOrder, Trigger as FieldTrigger, Widget as FormWidget, af as form_scripts,
-    appearance as form_appearance, appearance::auto_text_size_by as field_auto_text_size_by, flags as field_flags,
-};
-
-pub use pdfcraft_a11y as a11y;
-pub use pdfcraft_edit::{BlockStyle, PageImage, RangeStyle, TextBlock, TextLine, first_undrawable};
-pub use pdfcraft_measure as measure;
-pub use pdfcraft_xfa::Report as XfaLayout;
-
-pub use pdfcraft_edit::{EditableObject, MAX_MOVE_OBJECTS, ObjectKind, ObjectTarget};
-
-/// A change to an existing page image.
-#[derive(Clone, Debug, PartialEq)]
-pub enum ImageEdit {
-    /// Move and resize it to this box (user space).
-    Move([f64; 4]),
-    /// Quarter turns clockwise about its centre.
-    Rotate(i32),
-    Flip {
-        horizontal: bool,
-    },
-    /// Show only this box of it (user space), the pixels staying where they are.
-    Crop([f64; 4]),
-    /// Draw this image file (PNG, JPEG, TIFF, GIF, BMP, JPEG 2000) in its place.
-    Replace {
-        name: String,
-        bytes: Arc<Vec<u8>>,
-    },
-    Delete,
-}
-pub use pdfcraft_fonts::{MAX_SIGNATURE_CHARS, ScriptOutline, script_missing, script_outline, undrawable_message};
-
-/// Fill & Sign: `text` in the script font as a typed signature, its left edge at `at` (user
-/// space, vertically centred) and `height` points tall. `None` for text with no outlines.
-///
-/// Left, centred and upright are as displayed on a page turned by `rotation` (its `/Rotate`):
-/// the box runs along the displayed axes, like an image signature's
-/// ([`SignatureImage::rect`]), and the outlines are turned back so the name reads across.
-pub fn typed_signature_shape(at: [f64; 2], text: &str, height: f64, rotation: i64) -> Option<Shape> {
-    let o = script_outline(text);
-    let [left, bottom, right, top] = o.bounds();
-    let span = (top - bottom).max(0.1);
-    let width = right - left;
-    if o.contours.is_empty() || o.width <= 0.0 || !(width > 0.0 && height > 0.0) {
-        return None;
-    }
-    let k = height / span;
-    let rect = signature_image::upright_box(rotation, at, width * k, height)?;
-    // Displayed right and up as user-space unit vectors: a point at (nx, ny) of the displayed box
-    // is at this fraction of the user-space box. Exact for an unturned page.
-    let [a, b, c, d, ..] = pdfcraft_model::view_matrix_for(rotation, [0.0; 4]);
-    let to_user = |nx: f64, ny: f64| [a * nx + c * ny + (-a).max(0.0) + (-c).max(0.0), b * nx + d * ny + (-b).max(0.0) + (-d).max(0.0)];
-    let contours = o.contours.iter().map(|c| c.iter().map(|p| to_user((p[0] - left) / width, (p[1] - bottom) / span)).collect()).collect();
-    Some(Shape::TypedSignature { rect, contours })
-}
-/// `at` moved `right` and `up` points as displayed on a page turned by `rotation` (its `/Rotate`).
-pub fn displayed_offset(rotation: i64, at: [f64; 2], right: f64, up: f64) -> [f64; 2] {
-    let [a, b, c, d, ..] = pdfcraft_model::view_matrix_for(rotation, [0.0; 4]);
-    [at[0] + a * right + c * up, at[1] + b * right + d * up]
-}
-
-/// The user-space box `width` x `height` points as displayed on a page turned by `rotation`,
-/// with its displayed top-left corner at `at`: where typed text and text boxes go. `None` for a
-/// non-finite point.
-pub fn text_box_at(rotation: i64, at: [f64; 2], width: f64, height: f64) -> Option<[f64; 4]> {
-    signature_image::upright_box(rotation, displayed_offset(rotation, at, 0.0, -height / 2.0), width, height)
-}
-
-/// `text` in the script font as the graphic of a visible digital signature, as Fill & Sign types
-/// it. `None` for text with no outlines.
-pub fn typed_signature_graphic(text: &str) -> Option<pdfcraft_sign::Graphic> {
-    let o = script_outline(text);
-    o.contours.iter().any(|c| c.len() > 2).then_some(pdfcraft_sign::Graphic::Outlines(o.contours))
-}
+use std::sync::Arc;
 
 pub use links::{
     MAX_REMOTE_DOCUMENT_BYTES, RemoteDocumentPathError, read_remote_document, remote_document_path_is_absolute, resolve_remote_document_path,
 };
+pub use live_scripts::{MAX_TIMER_RUNS, ScriptRun};
+pub use pdfcraft_edit::strip_subset_tag;
+pub use rich_copy::RichCopy;
+pub use signature_image::{ImageSignaturePreview, SignatureImage};
+pub use signature_scan::{PhotoRect, ScanError, SignaturePhoto, Turn};
+pub use stamp_preview::{CommentLayer, StampPreview};
+pub use text_preview::{TextEditPreview, UnmarkedPages};
+
+pub use pdfcraft_organize::{
+    BoxSpec, FieldConflicts, MAX_IMPORT_BOOKMARKS, OutlineNode, OutlineTree, PageBox, SplitBy, Transition, TransitionSpec, mime_for_name,
+    split_ranges, unmapped as outline_unmapped, view_arity as outline_view_arity,
+};
+
+pub use pdfcraft_organize::LabelStyle;
+pub use pdfcraft_organize::Standard;
+pub use pdfcraft_organize::check_custom_key;
+pub use pdfcraft_organize::view::{InitialView, Layout as InitialLayout, Magnification, Navigation};
+
+pub use pdfcraft_cos::{Algorithm, civil_from_days};
+pub use pdfcraft_create::{
+    CONVERTIBLE, CreateError, IMAGE_EXTENSIONS, ImageResolution, OFFICE_EXTENSIONS, SourceKind, TEXT_EXTENSIONS, decode_text, source_kind,
+};
+pub use pdfcraft_edit::added::{
+    CHAR_SPACING_LIMIT as ADDED_CHAR_SPACING_LIMIT, paste_place as added_paste_place, paste_rect as added_paste_rect, text_rect as added_text_rect,
+    text_width as added_text_width,
+};
+pub use pdfcraft_edit::paragraph_align;
+pub use pdfcraft_edit::{
+    Added, AddedImage, AddedText, Align as TextAlign, Background, ColourTarget, ColoursConverted, Content as AddedContent, ConvertColours,
+    Family as FontFamily, Hairlines, HairlinesFixed, HeaderFooter, Ink as TextInk, MarkKind, PrinterMarks, Watermark,
+};
+pub use pdfcraft_forms::{
+    BorderStyle, CalculatedField, CalculationIssue, CalculationOrder, CheckStyle, Field as FormField, FieldAction, FieldChange, FieldFont,
+    FieldKind as FormFieldKind, FieldProps, FieldValue, Look as FieldLook, LookPatch as FieldLookPatch, NewField, TabOrder, Trigger as FieldTrigger,
+    Widget as FormWidget, af as form_scripts, appearance as form_appearance, appearance::auto_text_size_by as field_auto_text_size_by,
+    appearance::comb_auto_text_size as field_comb_auto_text_size, calculations_changed as form_calculations_changed, flags as field_flags,
+};
+
+pub use pdfcraft_a11y as a11y;
+pub use pdfcraft_edit::{Backdrop, BlockKey, BlockStyle, PageImage, RangeStyle, TextBlock, TextLine, block_overlapping, first_undrawable};
+pub use pdfcraft_measure as measure;
+pub use pdfcraft_xfa::Report as XfaLayout;
+
+pub use object_clip::{ObjectClip, ObjectClipboard};
+pub use pdfcraft_edit::{EditableObject, MAX_MOVE_OBJECTS, ObjectKind, ObjectTarget};
+
+pub use pdfcraft_fonts::{MAX_SIGNATURE_CHARS, ScriptOutline, script_missing, script_outline, undrawable_message};
+
 /// Comment geometry helpers (text-box line breaking) for frontends.
 pub use pdfcraft_annot::appearance as annot_text;
-pub use pdfcraft_annot::links::{Highlight as LinkHighlight, LinkAction, LinkItem, LinkStyle};
+pub use pdfcraft_annot::links::{Highlight as LinkHighlight, LinkAction, LinkItem, LinkStyle, LinkZoom};
 pub use pdfcraft_annot::{
-    AppearanceCache, AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, Props as CommentProps,
-    ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
+    Activation3d, AppearanceCache, AttachIcon, BorderShape, CALLOUT_KNEE_LINE, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon,
+    OverlayFont, OverlayLook, Props as CommentProps, ReviewState, Rgb, Shape, Side as CalloutSide, StampGroup, StampKind, Style, callout_attach,
+    callout_knee, callout_side, rect_quad,
 };
+pub use pdfcraft_annot::{MAX_MODEL_BYTES as MAX_3D_MODEL_BYTES, ModelFormat as Model3dFormat};
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
 pub use pdfcraft_preflight as pdfa;
 pub use pdfcraft_print as print;
+pub use pdfcraft_redact::Elsewhere as RedactionElsewhere;
 pub use pdfcraft_redact::codes::{CODE_SETS as REDACTION_CODE_SETS, CodeSet as RedactionCodeSet};
 pub use pdfcraft_redact::patterns::{
     MAX_WORDS as REDACT_MAX_WORDS, PATTERNS as REDACT_PATTERNS, Pattern as RedactPattern, find as find_pattern, word_list as redact_word_list,
 };
+pub use pdfcraft_redact::redacted_file_name;
 pub use pdfcraft_redact::sanitize::{HIDDEN, Hidden};
+pub use pdfcraft_redact::user_regex::{UserRegex as RedactRegex, VALIDATORS as REDACT_VALIDATORS, Validator as RedactValidator};
+pub use pdfcraft_redact::{Claim as RedactionClaim, Identification as RedactionIdentification};
 pub use pdfcraft_sign as sign;
-pub use pdfcraft_sign::{SignOptions, SignatureInfo, Status as SignatureStatus, TrustStore};
+pub use pdfcraft_sign::{SignOptions, SignatureInfo, Status as SignatureStatus, StatusCaptions, TrustStore};
 pub use pdfcraft_xfdf::Format as DataFormat;
+pub use pdfcraft_xfdf::{Outline as CommentOutline, comment_count, comment_outlines, comments_bounds, is_xfdf_comments};
 
-/// Forms ▸ Merge data files into spreadsheet: the field values of each file (FDF, XFDF or a
-/// filled-in PDF form), as CSV with one row per file.
-pub fn merge_data_files(files: &[(String, Vec<u8>)]) -> Result<String, String> {
-    let rows =
-        files.iter().map(|(name, bytes)| pdfcraft_xfdf::data_values(bytes).map_err(|e| format!("{name}: {e}"))).collect::<Result<Vec<_>, _>>()?;
-    Ok(pdfcraft_xfdf::merge_csv(&rows))
+use bookmarks::outline_rows;
+pub use bookmarks::{BookmarkPage, BookmarkRow};
+use comments::comment_list;
+pub use comments::{SummarySort, comment_kind, comment_summary, comment_type_name};
+#[cfg(test)]
+use document::page_runs;
+pub use document::{Document, EditNotice, TextNotice, display_bytes_for, render_password_for};
+use document::{carry_verdict_marks, display_bytes, info_fields, recovered_render_password, same_pages, shown_under_redactions, undrawn_notices};
+pub use edit::{BATCH_LABELS, EDIT_LABELS, Edit};
+pub use error::{EditError, SourceProblem};
+pub use fill_sign::{displayed_offset, text_box_at, typed_signature_graphic, typed_signature_shape};
+pub use history::Label;
+use layers::{apply_layer_state, print_layer_states, print_preview_layers, set_default_layer_state, use_layer_choices};
+pub use open::{OpenContext, PreparedDocument};
+pub use page_filter::{PageOrientation, PageParity, filter_pages};
+pub use pictures::{MarkFile, image_dimensions};
+use pictures::{embed_image, fit_picture, mark_source, model_poster};
+use protection::unrestricted;
+pub use protection::{Changes, Printing, Protection, SecuritySummary};
+pub use session::Session;
+pub use sources::{CombineSource, Combined, combine_source_check, office_to_pdf, source_page_count};
+use sources::{open_source, open_source_with};
+#[cfg(test)]
+use test_hooks::{
+    check_refresh_panic, panic_on_refresh, record_full_refresh, record_link_scan, record_marker_scan, reset_secondary_scan_counts,
+    secondary_scan_counts, take_full_refreshes,
+};
+use xfa_form::{
+    XFA_REMOVED_PREFIX, XFA_SCRIPTS_OFF, decode_data_file, image_content_type, is_xfa_data_file, note_warnings, strip_xfa, sync_xfa_state,
+    undrawn_field_warnings, xfa_after_data_change, xfa_layout, xfa_redraw, xfa_sync_datasets, xfa_values_from_datasets,
+};
+
+mod clock;
+mod doc_state;
+
+pub use pdfcraft_edit::ArrangeOrder;
+
+use clock::{local_utc_offset, parse_ymd};
+pub use doc_state::{DocId, ImageEdit, OptimizeReport, RecoverySnapshot, SplitPart, guard, merge_data_files};
+use doc_state::{LOW_RESOLUTION_PRINT_DPI, render_threads, renderer_password, signatures_of, writable};
+
+/// The configuration of the pool that draws the viewer: the document's own, plus installed CJK
+/// fonts for fonts a PDF does not embed (`pdfcraft_render::RenderConfig::system_fonts`). Exports,
+/// printing, OCR and automation use the document configuration itself, so nothing drawn with an
+/// installed font is saved or printed (AGENTS.md §1.2, §1.4).
+fn display_config(config: &pdfcraft_render::RenderConfig) -> pdfcraft_render::RenderConfig {
+    config.clone().on_screen()
 }
 
-pub type SplitPart = (usize, usize, Arc<Vec<u8>>);
-
-use std::sync::{Arc, OnceLock};
-
-#[cfg(test)]
-thread_local! {
-    static SECONDARY_SCAN_COUNTS: std::cell::Cell<(usize, usize)> = const { std::cell::Cell::new((0, 0)) };
-}
+/// How long a custom stamp's text line may be, in characters (#1741).
+pub const MAX_STAMP_LINE: usize = 200;
 
 #[cfg(test)]
+mod document_actions_tests;
+#[cfg(test)]
+<<<<<<< HEAD
 fn reset_secondary_scan_counts() {
     SECONDARY_SCAN_COUNTS.with(|counts| counts.set((0, 0)));
 }
@@ -5128,45 +5161,8 @@ pub fn comment_summary(name: &str, all: &[pdfcraft_render::Annotation], sort: Su
     out
 }
 
+=======
+mod link_javascript_tests;
+>>>>>>> upstream/main
 #[cfg(test)]
 mod tests;
-
-/// Page filters of Acrobat's Rotate Pages and page selection: even/odd page numbers and
-/// orientation (as displayed).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum PageParity {
-    #[default]
-    Both,
-    Even,
-    Odd,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum PageOrientation {
-    #[default]
-    Both,
-    Landscape,
-    Portrait,
-}
-
-/// The pages of `pages` (0-based) that pass the filters.
-pub fn filter_pages(info: &pdfcraft_render::DocInfo, pages: &[usize], parity: PageParity, orientation: PageOrientation) -> Vec<usize> {
-    pages
-        .iter()
-        .copied()
-        .filter(|p| match parity {
-            PageParity::Both => true,
-            // Page numbers are 1-based: index 1 is page 2, an even page.
-            PageParity::Even => p % 2 == 1,
-            PageParity::Odd => p % 2 == 0,
-        })
-        .filter(|p| {
-            let Some(pg) = info.pages.get(*p) else { return false };
-            match orientation {
-                PageOrientation::Both => true,
-                PageOrientation::Landscape => pg.width > pg.height,
-                PageOrientation::Portrait => pg.width <= pg.height,
-            }
-        })
-        .collect()
-}
