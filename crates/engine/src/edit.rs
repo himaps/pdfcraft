@@ -677,8 +677,13 @@ pub enum Edit {
     FlattenFillSign,
     /// Protect with passwords and permissions (written by the next save, which is a full rewrite).
     Protect(Protection),
-    /// Remove password security (needs the owner password).
-    RemoveProtection,
+    /// Remove password security (needs the owner password). With `force`, a document opened
+    /// without it (its user password was empty, or was given at open) loses its restrictions
+    /// too: either way the file is already fully decrypted, so this only drops the `/Encrypt`
+    /// dictionary. Deliberately beyond what Acrobat allows.
+    RemoveProtection {
+        force: bool,
+    },
     /// Several edits applied as one undoable step (all or nothing).
     Batch {
         label: String,

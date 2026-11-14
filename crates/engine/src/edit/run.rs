@@ -85,7 +85,7 @@ pub(crate) fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Re
                 Err(EditError::NotPermitted("filling in form fields"))
             }
         }
-        Edit::Protect(_) | Edit::RemoveProtection => {
+        Edit::Protect(_) | Edit::RemoveProtection { force: false } => {
             if unrestricted(p) {
                 Ok(())
             } else {
@@ -172,6 +172,9 @@ pub(crate) fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Re
                 Err(EditError::NotPermitted("changes to the document"))
             }
         }
+        // The forced removal is the point of `force`: the document is open, so its contents
+        // are already decrypted and only the restrictions go.
+        Edit::RemoveProtection { force: true } => Ok(()),
         Edit::Batch { edits, .. } => edits.iter().try_for_each(|e| check_permission(e, p)),
     }
 }
@@ -1127,10 +1130,12 @@ pub(crate) fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut E
             };
             doc.set_encryption(&params).map_err(|e| EditError::Protection(e.to_string()))?;
         }
-        Edit::RemoveProtection => {
-            if doc.output_handler().is_none() {
+        Edit::RemoveProtection { force } => {
+            if !force && doc.output_handler().is_none() {
                 return Err(EditError::Protection("the document isn't protected".into()));
             }
+            // The forced removal is the point of `force`: the document is open, so its contents
+            // are already decrypted and only the restrictions go.
             doc.remove_encryption();
         }
         Edit::Batch { edits, .. } => run_batch(doc, edits, cx)?,

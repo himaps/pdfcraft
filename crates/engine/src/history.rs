@@ -251,7 +251,7 @@ pub(crate) fn keys_after(edit: &Edit) -> Option<Keys> {
         Edit::Protect(p) => {
             Some(Keys { render: p.open_password.clone(), reopen: p.permissions_password.clone().or_else(|| p.open_password.clone()) })
         }
-        Edit::RemoveProtection => Some(Keys::default()),
+        Edit::RemoveProtection { .. } => Some(Keys::default()),
         Edit::Batch { edits, .. } => edits.iter().rev().find_map(keys_after),
         _ => None,
     }
