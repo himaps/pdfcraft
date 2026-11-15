@@ -284,6 +284,13 @@ jobs:
           git -C "$env:RUNNER_TEMP\craft-i18n" remote add origin https://github.com/storytold/craft-i18n.git
           git -C "$env:RUNNER_TEMP\craft-i18n" fetch -q --depth 1 origin $i18nRev
           git -C "$env:RUNNER_TEMP\craft-i18n" checkout -q --detach FETCH_HEAD
+          # The fork's own zh-hans entries (activation gate, password-free security removal, the
+          # OCR language names), appended to the pinned catalog like the deb jobs do — every job
+          # here builds on its own runner, so each craft-i18n clone needs the same overlay.
+          $catalog = "$env:RUNNER_TEMP\craft-i18n\locales\zh-hans\pdfcraft.tsv"
+          [System.IO.File]::AppendAllText($catalog,
+            [System.IO.File]::ReadAllText("$env:GITHUB_WORKSPACE\packaging\i18n\zh-hans-extra.tsv", [System.Text.Encoding]::UTF8),
+            (New-Object System.Text.UTF8Encoding $false))
           Add-Content $env:GITHUB_ENV "CRAFT_I18N_DIR=$env:RUNNER_TEMP\craft-i18n"
       - name: Build and package
         shell: pwsh
