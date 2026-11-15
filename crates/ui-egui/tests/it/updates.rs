@@ -109,6 +109,9 @@ fn started_with(settings: &'static str) -> (Harness<'static, PdfCraftApp>, Arc<s
         app.set_option("language", "en").unwrap();
         app.set_startup_update_check(true);
         app.restore(settings);
+        // The fork's default is off; this test turns the startup check on after the restore,
+        // which would otherwise write the preference back from `settings`.
+        app.update_check_at_start = true;
         let counted = counted.clone();
         app.set_update_source(Arc::new(move || {
             counted.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
@@ -195,6 +198,7 @@ fn the_check_at_start_offers_the_prompt_and_later_dismisses_it() {
         let mut app = PdfCraftApp::new();
         app.set_option("language", "en").unwrap();
         app.set_update_source(source(Ok(Some("v99.0.0"))));
+        app.update_check_at_start = true;
         app.set_startup_update_check(true);
         app
     });

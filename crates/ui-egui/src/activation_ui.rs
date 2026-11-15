@@ -56,6 +56,14 @@ pub fn gate(app: &mut PdfCraftApp, ui: &mut egui::Ui) -> bool {
     if app.activation.activated {
         return true;
     }
+    // Headless harness tests (kittest) render the real UI in a debug build with no install to
+    // activate, and there is no single place to mark 500+ app constructions as test instances,
+    // so a test run sets this once for the process. A release build compiles this branch out
+    // entirely: an installed copy cannot be bypassed this way.
+    #[cfg(debug_assertions)]
+    if std::env::var_os("PDFCRAFT_ACTIVATION_BYPASS").as_deref() == Some(std::ffi::OsStr::new("1")) {
+        return true;
+    }
     let Some(id) = app.activation.machine_id.clone() else {
         // No hardware identifier: the gate stays shut — there is nothing the user could send.
         let t = theme::Tokens::get(ui.ctx());

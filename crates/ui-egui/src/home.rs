@@ -71,7 +71,7 @@ fn tool_card(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, g: &'static c
     }
 }
 
-/// Draw the Home page with the welcome text, community card and recent documents.
+/// Draw the Home page with the recommended tools and the recent documents.
 pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {

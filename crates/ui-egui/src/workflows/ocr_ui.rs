@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 
 use egui::{Align, Layout};
 use pdfcraft_engine::DocId;
-use pdfcraft_engine::ocr::{EngineChoice, LANGUAGES, MergeStrategy, OcrPage, OcrSettings, OutputMode};
+use pdfcraft_engine::ocr::{EngineChoice, LANGUAGES, MergeStrategy, OcrPage, OcrSettings, OutputMode, tesseract};
 
 use crate::theme::{self, Tokens};
 use crate::{PdfCraftApp, widgets};
@@ -17,6 +17,30 @@ pub enum OcrPages {
     All,
     Current,
     Range,
+}
+
+/// The languages the dialog offers: the built-in models read English; when the Tesseract engine
+/// can run, its allow-list's languages join the list (the engine choice routes a language the
+/// models cannot read to Tesseract). While the Tesseract probe is still running the list is
+/// English only for a moment; it fills in when the probe lands, since the dialog re-renders.
+fn languages_for(engine: EngineChoice) -> Vec<(&'static str, &'static str)> {
+    let mut out: Vec<(&'static str, &'static str)> = LANGUAGES.to_vec();
+    if engine == EngineChoice::Ocrs || pdfcraft_engine::ocr::engine_unavailable_reason(EngineChoice::Tesseract).is_some() {
+        return out;
+    }
+    for (code, _) in tesseract::LANGUAGE_CODES {
+        if !out.iter().any(|(c, _)| c == code) {
+            let name = tesseract::LANGUAGE_NAMES.iter().find(|(k, _)| k == code).map_or("English", |(_, n)| *n);
+            out.push((code, name));
+        }
+    }
+    out
+}
+
+/// A language code the dialog may hold: the engines' tables together (the run routes a code the
+/// models cannot read to Tesseract, which validates it there).
+fn is_known_language(code: &str) -> bool {
+    LANGUAGES.iter().any(|(c, _)| *c == code) || tesseract::LANGUAGE_CODES.iter().any(|(c, _)| *c == code)
 }
 
 /// The dialog's choices (kept between runs, as in Acrobat). The Recognize Text dialog, the OCR
@@ -102,7 +126,7 @@ impl OcrDraft {
     /// Restore from the preferences JSON (`ocr` object); unknown or malformed values keep the
     /// defaults, like every other restored setting.
     pub fn apply_pref(&mut self, v: &serde_json::Value) {
-        if let Some(l) = v["language"].as_str().filter(|l| LANGUAGES.iter().any(|x| x.0 == *l)) {
+        if let Some(l) = v["language"].as_str().filter(|l| is_known_language(l)) {
             self.language = l.to_string();
         }
         if let Some(e) = v["engine"].as_str() {
@@ -283,9 +307,10 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> (boo
             group(ui, "Settings", &mut |ui| {
                 egui::Grid::new("ocr-settings").num_columns(2).spacing([12.0, 8.0]).show(ui, |ui| {
                     ui.label(tl!("Document language"));
-                    let name = LANGUAGES.iter().find(|l| l.0 == d.language).map_or("English", |l| l.1);
+                    let languages = languages_for(d.engine);
+                    let name = languages.iter().find(|l| l.0 == d.language).map_or("English", |l| l.1);
                     craft_ui::ComboBox::from_id_salt("ocr-language").selected_text(tl!(name)).width(220.0).show_ui(ui, |ui| {
-                        for (code, name) in LANGUAGES {
+                        for (code, name) in &languages {
                             ui.selectable_value(&mut d.language, (*code).to_string(), tl!(*name));
                         }
                     });

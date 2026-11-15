@@ -16,7 +16,7 @@ use pdfcraft_render::{PageInfo, PageRenderer, RenderConfig, RenderRequest, Reque
 
 pub use pdfcraft_ocr::{
     ConfidenceBand, DETECTION_MODEL, LANGUAGES, Line, MergeStrategy, Models, Ocr, OcrError, OcrImage, PlacedWord, RECOGNITION_MODEL, Recognizer,
-    StrategyOutcome, Word, band_for, is_suspect, lines_from_json, low_confidence,
+    StrategyOutcome, Word, band_for, is_suspect, lines_from_json, low_confidence, tesseract,
 };
 
 use crate::{DocId, Edit, EditError, Session};
@@ -553,12 +553,31 @@ pub fn recognizers(settings: &OcrSettings) -> Result<Recognizers, String> {
     match settings.engine {
         EngineChoice::Ocrs => Ok(Recognizers { primary: ocrs.ok_or_else(models_missing)?, secondary: None }),
         EngineChoice::Tesseract => Ok(Recognizers { primary: tesseract.ok_or_else(tesseract_unavailable)?, secondary: None }),
-        EngineChoice::Auto => match (ocrs, tesseract) {
-            (Some(p), s) => Ok(Recognizers { primary: p, secondary: s }),
-            (None, Some(p)) => Ok(Recognizers { primary: p, secondary: None }),
-            (None, None) => Err(models_missing()),
-        },
+        EngineChoice::Auto => {
+            // The built-in models read English only (`LANGUAGES`); their engine ignores the
+            // language option. A language they cannot read hands the primary seat to Tesseract,
+            // so a Chinese run reads Chinese instead of merging Latin guesses in; without a
+            // Tesseract program the run reports that instead of guessing.
+            if ocrs_reads(&settings.language) {
+                match (ocrs, tesseract) {
+                    (Some(p), s) => Ok(Recognizers { primary: p, secondary: s }),
+                    (None, Some(p)) => Ok(Recognizers { primary: p, secondary: None }),
+                    (None, None) => Err(models_missing()),
+                }
+            } else {
+                match tesseract {
+                    Some(p) => Ok(Recognizers { primary: p, secondary: None }),
+                    None => Err(tesseract_unavailable()),
+                }
+            }
+        }
     }
+}
+
+/// Whether the built-in models read `language` (their table, [`LANGUAGES`]): only English
+/// today, matched loosely like the engine choice's own parsing.
+fn ocrs_reads(language: &str) -> bool {
+    LANGUAGES.iter().any(|(c, _)| *c == language.trim().to_ascii_lowercase())
 }
 
 /// Why Tesseract cannot run, named for the user.
@@ -1406,6 +1425,17 @@ mod tests {
         assert_eq!(EngineChoice::parse("ocrs"), EngineChoice::Ocrs);
         assert_eq!(EngineChoice::parse("wat"), EngineChoice::Ocrs, "unknown names fall back to the default");
         assert_eq!(EngineChoice::default().name(), "ocrs");
+    }
+
+    /// Automatic hands a language the built-in models cannot read to Tesseract: the models'
+    /// engine ignores the language option, so anything but English would read as Latin guesses.
+    #[test]
+    fn automatic_reads_only_english_with_the_built_in_models() {
+        assert!(ocrs_reads("en"));
+        assert!(ocrs_reads(" EN "), "loose matching, like the engine choice's parsing");
+        assert!(!ocrs_reads("zh"));
+        assert!(!ocrs_reads("ja"));
+        assert!(!ocrs_reads(""));
     }
 
     /// Automatic reads with the second engine when the first is unsure unless a strategy was

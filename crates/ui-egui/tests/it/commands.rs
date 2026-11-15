@@ -165,6 +165,16 @@ fn every_registered_command_is_implemented() {
             let p = pdfcraft_engine::Protection { open_password: Some("pw".into()), ..Default::default() };
             app.apply_edit(pdfcraft_engine::Edit::Protect(p));
         }
+        if spec.id == "protect.force_remove" {
+            // Forced removal is for a document that opens without its password: protect it
+            // inside the session, save those bytes and reopen them, so the command sees the
+            // security view a reader of the protected file has.
+            let p = pdfcraft_engine::Protection { permissions_password: Some("pw".into()), ..Default::default() };
+            app.apply_edit(pdfcraft_engine::Edit::Protect(p));
+            let (_, id) = app.active_ids().unwrap();
+            let bytes = app.session.save_bytes(id).unwrap();
+            app.open_bytes("forced.pdf", None, bytes.to_vec()).unwrap();
+        }
         // The cover toggle needs two-page view first (it is disabled elsewhere).
         if spec.id == "view.layout.cover" {
             app.set_option("layout", "two-up").unwrap();

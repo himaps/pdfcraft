@@ -3144,7 +3144,7 @@ source = "https://github.com/storytold/craft-i18n (pinned by commit in craft-i18
 licence = "MIT OR Apache-2.0"
 attribution = "https://github.com/storytold/craft-i18n/blob/main/ATTRIBUTION.md"
 kind = "translation"
-usage = "Interface text in languages other than English, embedded by crates/ui-egui/build.rs and looked up through craft-libs' craft-i18n crate; a build without CRAFT_I18N_DIR is English only. Clean-room translations from PdfCraft's English interface labels"
+usage = "Interface text in languages other than English, embedded by crates/ui-egui/build.rs and looked up through craft-libs' craft-i18n crate; a build without CRAFT_I18N_DIR is English only. Clean-room translations from PdfCraft's English interface labels. This fork additionally appends its own clean-room zh-hans entries for fork-added interface text (packaging/i18n/zh-hans-extra.tsv, MIT OR Apache-2.0) to the pinned catalog at build time"
 
 [[build_input]]
 name = "craft-fonts"

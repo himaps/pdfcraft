@@ -120,6 +120,10 @@ jobs:
           git -C /tmp/craft-i18n remote add origin https://github.com/storytold/craft-i18n.git
           git -C /tmp/craft-i18n fetch -q --depth 1 origin "$I18N_REV"
           git -C /tmp/craft-i18n checkout -q --detach FETCH_HEAD
+          # The fork's own zh-hans entries (activation gate, password-free security removal, the
+          # OCR language names): appended to the pinned catalog, each checked absent from it, so
+          # no duplicate keys. packaging/i18n/zh-hans-extra.tsv documents the practice.
+          cat packaging/i18n/zh-hans-extra.tsv >> /tmp/craft-i18n/locales/zh-hans/pdfcraft.tsv
           echo "CRAFT_I18N_DIR=/tmp/craft-i18n" >> "$GITHUB_ENV"
 
       - name: Build and package

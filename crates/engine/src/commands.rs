@@ -432,7 +432,6 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("help.about", "About PdfCraft", HELP, None, Nothing, "info"),
     // Registered but menu-less in this build: links::LINKS still names it, while the fork
     // surfaces no Discord entry anywhere (no menu item, no top-bar button, no Home card).
-    c("help.discord", "Join the ArtCraft Discord", None, None, Nothing, "messages-square"),
 ];
 
 pub fn command(id: &str) -> Option<&'static CommandSpec> {

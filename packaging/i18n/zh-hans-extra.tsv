@@ -1,0 +1,29 @@
+# The fork's extra zh-hans entries for interface text this fork adds on top of upstream
+# PdfCraft (the activation gate, the password-free security removal, the OCR languages the
+# Tesseract engine reads). Clean-room: written from the plain meaning of the English text in
+# ordinary computing vocabulary, like every entry in craft-i18n; no other product's
+# localisation was consulted or copied. Licensed MIT OR Apache-2.0 like the repository.
+#
+# The Kylin workflow appends this file to the pinned craft-i18n checkout's
+# locales/zh-hans/pdfcraft.tsv before CRAFT_I18N_DIR embeds it; every line here was checked
+# absent from that checkout first, so appending creates no duplicate keys.
+# Columns, separated by a TAB: context <TAB> English source text <TAB> translation
+	Remove security without password	无密码解除安全性设置
+	Remove restrictions without password	无密码移除限制
+	Remove restrictions	移除限制
+	Activate PdfCraft	激活 PdfCraft
+	Cannot read a hardware identifier on this machine; activation is not possible.	无法读取这台机器的硬件标识，无法激活。
+	Activation is free: it only tells the author that this installation exists. The code stays on this machine until you send it yourself.	激活完全免费：它只是让作者知道这份安装的存在。在你自行发送之前，激活码只保存在这台机器上。
+	Your machine code — send it to the author:	你的机器码 —— 请把它发送给作者：
+	Copy machine code	复制机器码
+	Paste the activation code you received:	粘贴你收到的激活码：
+	four to six words joined by -	四到六个词，用 - 连接
+	Activate	激活
+	Activated. Thank you!	已激活，谢谢！
+	To store the activation, run this in a terminal and restart:	如需保存激活，请在终端运行以下命令，然后重新启动：
+	Couldn't write {path}: {error}	无法写入 {path}：{error}
+	That word is not in the table: {word}	这个词不在词表中：{word}
+	A code has {expected} words, this one has {got}.	激活码应有 {expected} 个词，这一份有 {got} 个。
+	The activation code does not match this machine.	激活码与这台机器不匹配。
+	Chinese (Simplified)	简体中文
+	Arabic	阿拉伯语

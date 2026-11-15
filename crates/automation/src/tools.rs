@@ -85,10 +85,18 @@ fn schema(props: Value, required: &[&str]) -> Value {
     json!({ "type": "object", "properties": props, "required": required, "additionalProperties": false })
 }
 
-/// The language codes the engines read, as the `language` enum — from the engine's own table,
-/// so the schema and the validator can never disagree.
+/// The language codes the engines read, as the `language` enum — from the engines' own tables,
+/// so the schema and the validator can never disagree. The built-in models read English; the
+/// Tesseract allow-list adds the languages the external program reads (the engine choice routes
+/// a code the built-in models cannot read to Tesseract).
 fn language_enum() -> Value {
-    Value::Array(pdfcraft_engine::ocr::LANGUAGES.iter().map(|(code, _)| json!(code)).collect())
+    let mut codes: Vec<Value> = pdfcraft_engine::ocr::LANGUAGES.iter().map(|(code, _)| json!(code)).collect();
+    for (code, _) in pdfcraft_engine::ocr::tesseract::LANGUAGE_CODES {
+        if !codes.iter().any(|c| c == &json!(code)) {
+            codes.push(json!(code));
+        }
+    }
+    Value::Array(codes)
 }
 
 struct T {

@@ -5604,6 +5604,7 @@ fn selected_square_under_the_update_prompt() -> Harness<'static, PdfCraftApp> {
     let found = Arc::new(AtomicBool::new(false));
     let answer = found.clone();
     let mut h = harness(move |app| {
+        app.update_check_at_start = true;
         app.set_startup_update_check(true);
         app.set_update_source(Arc::new(move || {
             // Not forever: a test that fails before the square is selected leaves no thread behind.
